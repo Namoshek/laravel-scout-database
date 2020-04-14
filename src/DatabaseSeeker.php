@@ -7,6 +7,7 @@ namespace Namoshek\Scout\Database;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Query\JoinClause;
 use Laravel\Scout\Builder;
 use Laravel\Scout\Searchable;
 use Namoshek\Scout\Database\Contracts\Stemmer;
@@ -153,7 +154,9 @@ class DatabaseSeeker
                 $query->from($this->databaseHelper->documentsTable())
                     ->where('document_type', $documentType)
                     ->selectRaw('COUNT(DISTINCT(document_id)) as cnt');
-            }, 'info', 'info.cnt', '>=', '0', 'inner', true)
+            }, 'info', function (JoinClause $join) {
+                $join->whereRaw('1 = 1');
+            })
             ->where('d.document_type', $documentType)
             ->where('w.term', 'like', $keyword)
             ->select([
@@ -162,10 +165,10 @@ class DatabaseSeeker
             ])
             ->selectRaw(
                 '(' .
-                    '(1 + LOG(? * (info.cnt / (IIF(w.num_documents > 1, w.num_documents, 1) + 1))))' .    // inverse document frequency
+                    '(1 + LOG(? * (info.cnt / ((CASE WHEN w.num_documents > 1 THEN w.num_documents ELSE 1 END) + 1))))' . // inverse document frequency
                     '* (' .
-                        '(CAST(? as float) * SQRT(d.num_hits))' .                                         // weighted term frequency
-                        '+ (CAST(? as float) * SQRT(1/(w.length - ? + 1)))' .                             // term deviation (for wildcard search)
+                        '(CAST(? as float) * SQRT(d.num_hits))' .             // weighted term frequency
+                        '+ (CAST(? as float) * SQRT(1/(w.length - ? + 1)))' . // term deviation (for wildcard search)
                     ')' .
                 ') as score',
                 [

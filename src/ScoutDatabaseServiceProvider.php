@@ -83,6 +83,12 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
 
             $connection = $app->make(DatabaseManager::class)->connection($config->get('scout-database.connection'));
 
+            // For the sqlite driver, we need access to the natural logarithm and square root from within the database.
+            if ($connection->getDriverName() === 'sqlite') {
+                $connection->getPdo()->sqliteCreateFunction('log', 'log', 1, \PDO::SQLITE_DETERMINISTIC);
+                $connection->getPdo()->sqliteCreateFunction('sqrt', 'sqrt', 1, \PDO::SQLITE_DETERMINISTIC);
+            }
+
             $tokenizer      = $app->make(Tokenizer::class);
             $stemmer        = $app->make(Stemmer::class);
             $databaseHelper = $app->make(DatabaseHelper::class);
