@@ -20,17 +20,12 @@
         "illuminate/contracts": "^6.0|^7.0",
         "illuminate/database": "^6.0|^7.0",
         "illuminate/support": "^6.0|^7.0",
-        "laravel/scout": "^8.0",
+        "laravel/scout": "^7.0|^8.0",
         "wamania/php-stemmer": "^2.0"
     },
     "autoload": {
         "psr-4": {
             "Namoshek\\Scout\\Database\\": "src"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Namoshek\\Scout\\Database\\Tests\\": "tests"
         }
     },
     "config": {
