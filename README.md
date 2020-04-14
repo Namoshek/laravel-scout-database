@@ -52,8 +52,10 @@ The package follows the available use cases described in the [official Scout doc
 
 ## Disclaimer
 
-The package has only been tested with SQL Server so far. As only the Laravel query builder (not even Eloquent models) as well as very simple
-migration files are used, there shouldn't be any issues with other database systems though. If so, please let me know and I'll have a look.
+The package has only been tested with Microsoft SQL Server as well as SQLite so far. The SQL functions used within raw query parts should be available
+for Microsoft SQL Server, MySql, PostgreSQL as well as SQLite. Polyfills for `log()` and `sqrt()` have been provided for SQLite, but they might
+not yield very good performance (to be honest, I've no experience with this part). If you come across issues with any of the database systems
+Laravel supports, please let me know.
 
 Also noteworthy is that the search algorithm has not been tested with concrete test inputs, only with some real world data.
 
