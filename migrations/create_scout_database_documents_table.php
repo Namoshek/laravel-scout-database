@@ -16,7 +16,7 @@ class CreateScoutDatabaseDocumentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('scout_documents', function (Blueprint $table) {
+        Schema::connection(config('scout-database.connection'))->create('scout_documents', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('word_id');
             $table->string('document_type');
@@ -36,6 +36,6 @@ class CreateScoutDatabaseDocumentsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('scout_documents');
+        Schema::connection(config('scout-database.connection'))->dropIfExists('scout_documents');
     }
 }

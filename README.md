@@ -43,7 +43,8 @@ All available configuration options of the package itself can be found in `confi
 The options are described thoroughly in the file itself.
 
 _A basic installation most likely does not require you to change any of these settings. Just to make sure, you should have a look at the
-`connection` option though._
+`connection` option though. If you want to change this, do so before running the migrations or the tables will be created using the wrong
+database connection._
 
 ## Usage
 
