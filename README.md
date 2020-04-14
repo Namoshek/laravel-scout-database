@@ -40,7 +40,9 @@ In order to instruct Scout to use the driver provided by this package, you need 
 to `database`. If you did not change the Scout configuration file, you can also set the `SCOUT_DRIVER` environment variable to `database` instead.
 
 All available configuration options of the package itself can be found in `config/scout-database.php`.
-The options are described thoroughly in the file itself.
+The options are described thoroughly in the file itself. By default, the package uses the [`UnicodeTokenizer`](src/Tokenizer/UnicodeTokenizer.php)
+and the [`PorterStemmer`](src/Stemmer/PorterStemmer.php) which is suitable for the English language. The search adds a trailing wildcard to the
+last token and not all search terms need to be found in order for a document to show up in the results (there must be at least one match though).
 
 _A basic installation most likely does not require you to change any of these settings. Just to make sure, you should have a look at the
 `connection` option though. If you want to change this, do so before running the migrations or the tables will be created using the wrong
