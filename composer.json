@@ -1,0 +1,47 @@
+{
+    "name": "namoshek/laravel-scout-database",
+    "description": "A generic Laravel Scout driver which performs full-text search on indexed model data using an SQL database as storage backend. Indexed data is stored in normalized form, allowing efficient search.",
+    "keywords": [
+        "laravel",
+        "scout"
+    ],
+    "homepage": "https://github.com/Namoshek/laravel-scout-database",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marvin Mall",
+            "email": "marvin-mall@msn.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.2",
+        "illuminate/contracts": "^6.0|^7.0",
+        "illuminate/database": "^6.0|^7.0",
+        "illuminate/support": "^6.0|^7.0",
+        "laravel/scout": "^8.0",
+        "wamania/php-stemmer": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Namoshek\\Scout\\Database\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Namoshek\\Scout\\Database\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Namoshek\\Scout\\Database\\ScoutDatabaseServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
