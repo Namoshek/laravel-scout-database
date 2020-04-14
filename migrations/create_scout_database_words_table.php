@@ -18,7 +18,7 @@ class CreateScoutDatabaseWordsTable extends Migration
      */
     public function up(): void
     {
-        Schema::create('__TABLE__PREFIX__words', function (Blueprint $table) {
+        Schema::create('scout_words', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('term', '1024');
             $table->unsignedInteger('num_hits');
@@ -36,6 +36,6 @@ class CreateScoutDatabaseWordsTable extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('__TABLE__PREFIX__words');
+        Schema::dropIfExists('scout_words');
     }
 }

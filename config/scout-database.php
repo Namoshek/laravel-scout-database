@@ -25,9 +25,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | This setting can be used to change the prefix used for tables created by
-    | this package. This setting needs to be changed before migrations are
-    | published. If it needs to be changed afterwards, the table must be
-    | renamed manually or via a custom migration.
+    | this package. If this setting is changed, the migrations also need to be
+    | changed before run for the first time. Any later change of this setting
+    | requires the creation of a custom migration or a manual renaming of the
+    | database tables.
     |
     | Note: The configured prefix is prepended to the table name without any
     | additional joining character (like _) in between.

@@ -16,14 +16,14 @@ class CreateScoutDatabaseDocumentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('__TABLE__PREFIX__documents', function (Blueprint $table) {
+        Schema::create('scout_documents', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('word_id');
             $table->string('document_type');
             $table->unsignedBigInteger('document_id');
             $table->unsignedInteger('num_hits');
 
-            $table->foreign('word_id')->references('id')->on('__TABLE__PREFIX__words');
+            $table->foreign('word_id')->references('id')->on('scout_words');
 
             $table->index(['document_type', 'document_id']);
         });
@@ -36,6 +36,6 @@ class CreateScoutDatabaseDocumentsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('__TABLE__PREFIX__documents');
+        Schema::dropIfExists('scout_documents');
     }
 }
