@@ -73,7 +73,7 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
                 __DIR__.'/../migrations/create_scout_database_words_table.php' =>
                     database_path('migrations/'.date('Y_m_d_His', time()).'_create_scout_database_words_table.php'),
                 __DIR__.'/../migrations/create_scout_database_documents_table.php' =>
-                    database_path('migrations/'.date('Y_m_d_His', time()).'create_scout_database_documents_table.php'),
+                    database_path('migrations/'.date('Y_m_d_His', time()).'_create_scout_database_documents_table.php'),
             ], 'migrations');
         }
 
