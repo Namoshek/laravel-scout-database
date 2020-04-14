@@ -36,10 +36,14 @@ php artisan migrate
 
 ## Configuration
 
-All available configuration options can be found in `config/scout-database.php`. The options are described thoroughly in the file itself.
+In order to instruct Scout to use the driver provided by this package, you need to change the `driver` option in `config/scout.php`
+to `database`. If you did not change the Scout configuration file, you can also set the `SCOUT_DRIVER` environment variable to `database` instead.
 
-_A basic installation most likely does not require any configuration change at all, you might want to have a look at
-the `connection` setting just in case though._
+All available configuration options of the package itself can be found in `config/scout-database.php`.
+The options are described thoroughly in the file itself.
+
+_A basic installation most likely does not require you to change any of these settings. Just to make sure, you should have a look at the
+`connection` option though._
 
 ## Usage
 
