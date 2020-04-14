@@ -48,6 +48,36 @@ _A basic installation most likely does not require you to change any of these se
 `connection` option though. If you want to change this, do so before running the migrations or the tables will be created using the wrong
 database connection._
 
+### Supported Tokenizers
+
+Currently, only a [`UnicodeTokenizer`](src/Tokenizer/UnicodeTokenizer.php) is available. It will split strings at any character which is neither
+a letter, nor a number according to the `\p{L}` and `\p{N}` regex patterns. This means that dots, colons, dashes, whitespace, etc. are split criteria.
+
+If you have different requirements for a tokenizer, you can provide your own implementation via the configuration. Just make sure it implements the
+[`Tokenizer`](src/Contracts/Tokenizer.php) interface.
+
+### Supported Stemmers
+
+Currently, all stemmers implemented by the [`wamania/php-stemmer`](https://github.com/wamania/php-stemmer) package are available. A wrapper class
+has been added for each of them:
+
+- [`DanishStemmer`](src/Stemmer/DanishStemmer.php)
+- [`DutchStemmer`](src/Stemmer/DutchStemmer.php)
+- [`EnglishStemmer`](src/Stemmer/EnglishStemmer.php)
+- [`FrenchStemmer`](src/Stemmer/FrenchStemmer.php)
+- [`GermanStemmer`](src/Stemmer/GermanStemmer.php)
+- [`ItalianStemmer`](src/Stemmer/ItalianStemmer.php)
+- [`NorwegianStemmer`](src/Stemmer/NorwegianStemmer.php)
+- [`PorterStemmer`](src/Stemmer/PorterStemmer.php) _(default, same as [`EnglishStemmer`](src/Stemmer/EnglishStemmer.php))_
+- [`PortugueseStemmer`](src/Stemmer/PortugueseStemmer.php)
+- [`RomanianStemmer`](src/Stemmer/RomanianStemmer.php)
+- [`RussianStemmer`](src/Stemmer/RussianStemmer.php)
+- [`SpanishStemmer`](src/Stemmer/SpanishStemmer.php)
+- [`SwedishStemmer`](src/Stemmer/SwedishStemmer.php)
+
+If you have different requirements for a stemmer, you can provide your own implementation via the configuration. Just make sure it implements the
+[`Stemmer`](src/Contracts/Stemmer.php) interface.
+
 ## Usage
 
 The package follows the available use cases described in the [official Scout documentation](https://laravel.com/docs/7.x/scout).
