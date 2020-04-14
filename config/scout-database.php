@@ -147,6 +147,30 @@ return [
 
         'wildcard_last_token' => true,
 
+        /*
+        |--------------------------------------------------------------------------
+        | Require a Match for all Tokens
+        |--------------------------------------------------------------------------
+        |
+        | This setting controls whether only documents should be returned which
+        | contain all of the words contained in the search query. This setting will
+        | simply count the found distinct words for each document and ensure the
+        | word count is equal to or higher than the amount of search terms.
+        |
+        | Without this setting, documents matching only a single word of the search
+        | query may be returned, but only if their score is high enough or if no
+        | better results are found (and the query limit has not been reached yet).
+        |
+        | Note: If this setting is used together with `wildcard_last_token`, there
+        | may be false-positives in the result set due to the wildcard. Example:
+        | For a search of "world he", the query will also return documents which
+        | contain the words "hello" and "help" but not "world". This is because
+        | "he" will be translated to "he%" and match both those words.
+        |
+        */
+
+        'require_match_for_all_tokens' => false,
+
     ],
 
 ];

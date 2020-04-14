@@ -23,6 +23,9 @@ class SearchConfiguration
     /** @var bool */
     protected $wildcardLastToken;
 
+    /** @var bool */
+    protected $requireMatchForAllTokens;
+
     /**
      * SearchWeights constructor.
      *
@@ -30,18 +33,21 @@ class SearchConfiguration
      * @param float $termFrequencyWeight
      * @param float $termDeviationWeight
      * @param bool  $wildcardLastToken
+     * @param bool  $requireMatchForAllTokens
      */
     public function __construct(
         float $inverseDocumentFrequencyWeight,
         float $termFrequencyWeight,
         float $termDeviationWeight,
-        bool $wildcardLastToken
+        bool $wildcardLastToken,
+        bool $requireMatchForAllTokens
     )
     {
         $this->inverseDocumentFrequencyWeight = $inverseDocumentFrequencyWeight;
         $this->termFrequencyWeight            = $termFrequencyWeight;
         $this->termDeviationWeight            = $termDeviationWeight;
         $this->wildcardLastToken              = $wildcardLastToken;
+        $this->requireMatchForAllTokens       = $requireMatchForAllTokens;
     }
 
     /**
@@ -82,5 +88,15 @@ class SearchConfiguration
     public function lastTokenShouldUseWildcard(): bool
     {
         return $this->wildcardLastToken;
+    }
+
+    /**
+     * Returns whether search shall only return documents containing all searched tokens.
+     *
+     * @return bool
+     */
+    public function requireMatchForAllTokens(): bool
+    {
+        return $this->requireMatchForAllTokens;
     }
 }

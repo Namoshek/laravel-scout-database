@@ -97,7 +97,8 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
                 $config->get('scout-database.search.inverse_document_frequency_weight', 1),
                 $config->get('scout-database.search.term_frequency_weight', 1),
                 $config->get('scout-database.search.term_deviation_weight', 1),
-                $config->get('scout-database.search.wildcard_last_token', true)
+                $config->get('scout-database.search.wildcard_last_token', true),
+                $config->get('scout-database.search.require_match_for_all_tokens', false)
             );
 
             $indexer = new DatabaseIndexer($connection, $tokenizer, $stemmer, $databaseHelper);

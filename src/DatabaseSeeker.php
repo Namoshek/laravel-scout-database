@@ -123,6 +123,9 @@ class DatabaseSeeker
             }, 'rated_documents')
             ->select('document_id')
             ->groupBy('document_id')
+            ->when($this->searchConfiguration->requireMatchForAllTokens(), function (QueryBuilder $query) use ($keywords) {
+                $query->havingRaw('COUNT(DISTINCT(word_id)) >= CAST(? as int)', [count($keywords)]);
+            })
             ->orderByRaw('SQRT(COUNT(DISTINCT(word_id))) * SUM(score) DESC')
             ->when($pageSize !== null, function (QueryBuilder $query) use ($pageSize, $page) {
                 $query->offset(($page - 1) * $pageSize);
