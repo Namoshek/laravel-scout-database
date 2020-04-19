@@ -82,6 +82,36 @@ If you have different requirements for a stemmer, you can provide your own imple
 
 The package follows the available use cases described in the [official Scout documentation](https://laravel.com/docs/7.x/scout).
 
+### How does it work?
+
+#### The Indexing
+
+The search driver internally uses two database tables, one for words and one for document associations. When indexing documents (i.e. adding
+or updating models in the search index) the engine will use the configured tokenizer to split the input of each column into tokens.
+The tokenizer configured by default simply splits inputs into words consisting of any unicode letter or number, which means any other character
+like `,`, `.`, `-`, `_`, `!`, `?`, `/`, whitespace and all other special characters are considered separators for the tokens and will be removed
+by the tokenizer. This way such characters will never end up in the search index itself.
+
+After the inputs have been tokenized, each token (and at this point we actually expect our tokens to be words) is run through the configured
+stemmer to retrieve the stem (i.e. _root word_). Performing this action allows us to search for similar words later.
+The [`PorterStemmer`](src/Stemmer/PorterStemmer.php) for example will produce `intellig` as output for both `intelligent` as well as 
+`intelligence` as input. How this helps when searching will be clear in a moment.
+
+Finally, the results of this process are stored in the database. The _words_ table is filled with the results of the stemming process,
+while the _documents_ table contains associations between the indexed models (model type and identifier) as well as the indexed word.
+On top of that, for each word the database also contains the number of associated documents and the number of occurrences within these documents.
+The _documents_ table also contains the number of occurrences of the associated word within the document. We use this information for scoring
+within the search part of our engine.
+
+#### The Search
+
+When executing a search query, the same tokenizing and stemming process as used for indexing is applied to the search query string. The result of
+this process is a list of stems (or _root words_) which are then used to perform the actual search. Depending on the configuration of the package,
+the search will return documents which contain at least one or all of the stems. This is done by calculating a score for each match in the index
+based on the inverse document frequency (i.e. the ratio between indexed documents and documents containing one of the searched words),
+the term frequency (i.e. the number of occurrences of a search term within a document) and the term deviation (which is only relevant for the
+wildcard search). Returned are documents ordered by their score in descending order, until the desired limit is reached.
+
 ## Disclaimer
 
 The package has only been tested with Microsoft SQL Server as well as SQLite so far. The SQL functions used within raw query parts should be available
