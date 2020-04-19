@@ -68,6 +68,7 @@ has been added for each of them:
 - [`GermanStemmer`](src/Stemmer/GermanStemmer.php)
 - [`ItalianStemmer`](src/Stemmer/ItalianStemmer.php)
 - [`NorwegianStemmer`](src/Stemmer/NorwegianStemmer.php)
+- [`NullStemmer`](src/Stemmer/NullStemmer.php) _(can be used to disable stemming)_
 - [`PorterStemmer`](src/Stemmer/PorterStemmer.php) _(default, same as [`EnglishStemmer`](src/Stemmer/EnglishStemmer.php))_
 - [`PortugueseStemmer`](src/Stemmer/PortugueseStemmer.php)
 - [`RomanianStemmer`](src/Stemmer/RomanianStemmer.php)
