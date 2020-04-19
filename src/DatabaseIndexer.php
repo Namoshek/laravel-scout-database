@@ -111,12 +111,7 @@ class DatabaseIndexer
 
                 // Update the document counter of the words table.
                 foreach ($documentsToDelete as $documentToDelete) {
-                    $this->connection->table($this->databaseHelper->wordsTable())
-                        ->where('id', $documentToDelete->word_id)
-                        ->update([
-                            'num_documents' => DB::raw('num_documents - 1'),
-                            'num_hits' => DB::raw("num_hits - $documentToDelete->num_hits"),
-                        ]);
+                    $this->reduceWordEntry($documentToDelete->word_id, $documentToDelete->num_hits);
                 }
 
                 // Remove words with a document or hit count of zero.
@@ -138,28 +133,15 @@ class DatabaseIndexer
     {
         try {
             $this->connection->transaction(function () use ($model) {
-                // Find all documents to delete.
-                $documentsToDelete = $this->connection->table($this->databaseHelper->documentsTable())
-                    ->where('document_type', $model->searchableAs())
-                    ->get();
-
-                // Delete the documents from the documents table.
+                // Delete the affected documents from the documents table.
                 $this->connection->table($this->databaseHelper->documentsTable())
                     ->where('document_type', $model->searchableAs())
                     ->delete();
 
-                // Update the document counter of the words table.
-                foreach ($documentsToDelete as $documentToDelete) {
-                    $this->connection->table($this->databaseHelper->wordsTable())
-                        ->where('id', $documentToDelete->word_id)
-                        ->update([
-                            'num_documents' => DB::raw('num_documents - 1'),
-                            'num_hits' => DB::raw("num_hits - $documentToDelete->num_hits"),
-                        ]);
-                }
-
-                // Remove words with a document or hit count of zero.
-                $this->deleteWordsWithoutAssociatedDocuments();
+                // Delete words of the affected document type from the words table.
+                $this->connection->table($this->databaseHelper->wordsTable())
+                    ->where('document_type', $model->searchableAs())
+                    ->delete();
             });
         } catch (\Throwable $e) {
             throw new ScoutDatabaseException("Deleting all entries of type from search index failed.", 0, $e);
@@ -192,21 +174,18 @@ class DatabaseIndexer
 
         foreach ($words as $term => $meta) {
             $existingEntry = $this->connection->table($this->databaseHelper->wordsTable())
+                ->where('document_type', $model->searchableAs())
                 ->where('term', (string) $term)
                 ->first();
 
             if ($existingEntry !== null) {
                 $words[$term]['id'] = $existingEntry->id;
 
-                $this->connection->table($this->databaseHelper->wordsTable())
-                    ->where('id', $existingEntry->id)
-                    ->update([
-                        'num_hits' => $existingEntry->num_hits + $meta['hits'],
-                        'num_documents' => $existingEntry->num_documents + 1,
-                    ]);
+                $this->increaseWordEntry($existingEntry->id, $meta['hits']);
             } else {
                 $words[$term]['id'] = $this->connection->table($this->databaseHelper->wordsTable())
                     ->insertGetId([
+                        'document_type' => $model->searchableAs(),
                         'term' => $term,
                         'num_hits' => $meta['hits'],
                         'num_documents' => 1,
@@ -246,6 +225,40 @@ class DatabaseIndexer
                 return $this->stemmer->stem($word);
             }, $words);
         }, $data);
+    }
+
+    /**
+     * Reduces an existing entry in the `words` table using the given parameters.
+     *
+     * @param int $wordId
+     * @param int $numHits
+     * @param int $numDocuments
+     */
+    protected function reduceWordEntry(int $wordId, int $numHits, int $numDocuments = 1): void
+    {
+        $this->connection->table($this->databaseHelper->wordsTable())
+            ->where('id', $wordId)
+            ->update([
+                'num_documents' => DB::raw("num_documents - $numDocuments"),
+                'num_hits' => DB::raw("num_hits - $numHits"),
+            ]);
+    }
+
+    /**
+     * Increases an existing entry in the `words` table using the given parameters.
+     *
+     * @param int $wordId
+     * @param int $numHits
+     * @param int $numDocuments
+     */
+    protected function increaseWordEntry(int $wordId, int $numHits, int $numDocuments = 1): void
+    {
+        $this->connection->table($this->databaseHelper->wordsTable())
+            ->where('id', $wordId)
+            ->update([
+                'num_documents' => DB::raw("num_documents + $numDocuments"),
+                'num_hits' => DB::raw("num_hits + $numHits"),
+            ]);
     }
 
     /**

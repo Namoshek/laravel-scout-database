@@ -20,12 +20,13 @@ class CreateScoutDatabaseWordsTable extends Migration
     {
         Schema::connection(config('scout-database.connection'))->create('scout_words', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->string('document_type');
             $table->string('term', '1024');
             $table->unsignedInteger('num_hits');
             $table->unsignedInteger('num_documents');
             $table->unsignedInteger('length');
 
-            $table->unique('term');
+            $table->unique(['document_type', 'term']);
         });
     }
 

@@ -104,6 +104,10 @@ On top of that, for each word the database also contains the number of associate
 The _documents_ table also contains the number of occurrences of the associated word within the document. We use this information for scoring
 within the search part of our engine.
 
+_Note: The indexer uses different entries in the words table for the same word, if the indexed documents are different. This is done in order
+to avoid search pollution of documents by documents of different type. Also, the way Laravel implements its search, indexes of different document
+types are expected to be separated as well._
+
 #### The Search
 
 When executing a search query, the same tokenizing and stemming process as used for indexing is applied to the search query string. The result of
