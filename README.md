@@ -117,6 +117,19 @@ based on the inverse document frequency (i.e. the ratio between indexed document
 the term frequency (i.e. the number of occurrences of a search term within a document) and the term deviation (which is only relevant for the
 wildcard search). Returned are documents ordered by their score in descending order, until the desired limit is reached.
 
+## Limitations
+
+Obviously, this package does not provide a search engine which (even remotely) brings the performance and quality a professional search engine
+like Elasticsearch offers. This solution is meant for smaller to medium-sized projects which are in need of a rather simple-to-setup solution.
+
+One issue with this search engine is that it leads to issues if multiple queue workers work on the indexing concurrently (database will deadlock).
+Therefore, the whole system is implicitly limited by the amount of data one queue worker is able to index. For projects with frequent data updates,
+this may imply that only a few thousand documents are already enough to bring the engine to its limits. If your project has only few
+(and regular instead of piled) updates, millions of documents may not be an issue at all. In short: if it works for you depends on the use case.
+
+_Note: Use the `queue` setting in your `config/scout.php` to use a queue for indexing on which only queue worker is active, if you run into issues
+with deadlocks. Running index updates synchronously (not queued) may break your application altogether._
+
 ## Disclaimer
 
 The package has only been tested with Microsoft SQL Server as well as SQLite so far. The SQL functions used within raw query parts should be available
@@ -124,7 +137,7 @@ for Microsoft SQL Server, MySql, PostgreSQL as well as SQLite. Polyfills for `lo
 not yield very good performance (to be honest, I've no experience with this part). If you come across issues with any of the database systems
 Laravel supports, please let me know.
 
-Also noteworthy is that the search algorithm has not been tested with concrete test inputs, only with some real world data.
+Noteworthy as well is that the search algorithm has not been tested with concrete test inputs, only with some real world data.
 
 ## License
 
