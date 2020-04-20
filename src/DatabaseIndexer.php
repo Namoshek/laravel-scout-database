@@ -111,7 +111,7 @@ class DatabaseIndexer
 
                 // Update the document counter of the words table.
                 foreach ($documentsToDelete as $documentToDelete) {
-                    $this->reduceWordEntry((int) $documentToDelete->word_id, $documentToDelete->num_hits);
+                    $this->reduceWordEntry((int) $documentToDelete->word_id, (int) $documentToDelete->num_hits);
                 }
 
                 // Remove words with a document or hit count of zero.
