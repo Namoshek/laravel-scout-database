@@ -127,7 +127,7 @@ Therefore, the whole system is implicitly limited by the amount of data one queu
 this may imply that only a few thousand documents are already enough to bring the engine to its limits. If your project has only few
 (and regular instead of piled) updates, millions of documents may not be an issue at all. In short: if it works for you depends on the use case.
 
-_Note: Use the `queue` setting in your `config/scout.php` to use a queue for indexing on which only queue worker is active, if you run into issues
+_Note: Use the `queue` setting in your `config/scout.php` to use a queue for indexing on which only one queue worker is active, if you run into issues
 with deadlocks. Running index updates synchronously (not queued) may break your application altogether._
 
 ## Disclaimer
