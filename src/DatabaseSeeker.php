@@ -168,10 +168,10 @@ class DatabaseSeeker
             ])
             ->selectRaw(
                 '(' .
-                    '(1 + LOG(? * (info.cnt / ((CASE WHEN w.num_documents > 1 THEN w.num_documents ELSE 1 END) + 1))))' . // inverse document frequency
+                    '(1 + LOG(? * (CAST(info.cnt as float) / ((CASE WHEN w.num_documents > 1 THEN w.num_documents ELSE 1 END) + 1))))' . // inverse document frequency
                     '* (' .
-                        '(CAST(? as float) * SQRT(d.num_hits))' .                    // weighted term frequency
-                        '+ (CAST(? as float) * SQRT(1 / (ABS(w.length - ?) + 1)))' . // term deviation (for wildcard search)
+                        '(CAST(? as float) * SQRT(d.num_hits))' .                                   // weighted term frequency
+                        '+ (CAST(? as float) * SQRT(CAST(1 as float) / (ABS(w.length - ?) + 1)))' . // term deviation (for wildcard search)
                     ')' .
                 ') as score',
                 [
