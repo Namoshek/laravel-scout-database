@@ -109,10 +109,14 @@ class DatabaseIndexer
                 $this->addDocumentConstraintsToBuilder($this->connection->table($this->databaseHelper->documentsTable()), $models)
                     ->delete();
 
-                // Update the document counter of the words table.
-                foreach ($documentsToDelete as $documentToDelete) {
-                    $this->reduceWordEntry((int) $documentToDelete->word_id, (int) $documentToDelete->num_hits);
-                }
+                // Update the document counter of the words table. In order to do so,
+                // we first group our deleted documents by their hit count. This allows
+                // us to run less database queries which improves performance.
+                $documentsToDelete->mapToGroups(function (object $document) {
+                    return [(int) $document->num_hits => (int) $document->word_id];
+                })->each(function (array $wordIds, int $numHits) {
+                    $this->reduceWordEntries($wordIds, $numHits);
+                });
 
                 // Remove words with a document or hit count of zero.
                 $this->deleteWordsWithoutAssociatedDocuments();
@@ -230,14 +234,14 @@ class DatabaseIndexer
     /**
      * Reduces an existing entry in the `words` table using the given parameters.
      *
-     * @param int $wordId
-     * @param int $numHits
-     * @param int $numDocuments
+     * @param int[] $wordIds
+     * @param int   $numHits
+     * @param int   $numDocuments
      */
-    protected function reduceWordEntry(int $wordId, int $numHits, int $numDocuments = 1): void
+    protected function reduceWordEntries(array $wordIds, int $numHits, int $numDocuments = 1): void
     {
         $this->connection->table($this->databaseHelper->wordsTable())
-            ->where('id', $wordId)
+            ->whereIn('id', $wordIds)
             ->update([
                 'num_documents' => DB::raw("num_documents - $numDocuments"),
                 'num_hits' => DB::raw("num_hits - $numHits"),
