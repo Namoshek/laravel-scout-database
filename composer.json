@@ -31,6 +31,11 @@
             "Namoshek\\Scout\\Database\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Namoshek\\Scout\\Database\\Tests\\": "tests"
+        }
+    },
     "config": {
         "sort-packages": true
     },
