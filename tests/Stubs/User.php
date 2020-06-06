@@ -16,6 +16,8 @@ class User extends Model
 {
     use Searchable;
 
+    protected $guarded = [];
+
     public function searchableAs()
     {
         return 'user';
