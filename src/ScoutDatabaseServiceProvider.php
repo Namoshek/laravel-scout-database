@@ -52,6 +52,28 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
 
             return new DatabaseHelper($config->get('scout-database.table_prefix'));
         });
+
+        $this->app->bind(IndexingConfiguration::class, function (Application $app) {
+            /** @var ConfigRepository $config */
+            $config = $app->make('config');
+
+            return new IndexingConfiguration(
+                $config->get('scout-database.clean_words_table_on_every_update', true)
+            );
+        });
+
+        $this->app->bind(SearchConfiguration::class, function (Application $app) {
+            /** @var ConfigRepository $config */
+            $config = $app->make('config');
+
+            return new SearchConfiguration(
+                $config->get('scout-database.search.inverse_document_frequency_weight', 1),
+                $config->get('scout-database.search.term_frequency_weight', 1),
+                $config->get('scout-database.search.term_deviation_weight', 1),
+                $config->get('scout-database.search.wildcard_last_token', true),
+                $config->get('scout-database.search.require_match_for_all_tokens', false)
+            );
+        });
     }
 
     /**
@@ -71,9 +93,9 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
             ], 'config');
 
             $this->publishes([
-                __DIR__.'/../migrations/create_scout_database_words_table.php' =>
+                __DIR__ . '/../migrations/0000_00_00_000000_create_scout_database_words_table.php' =>
                     database_path('migrations/'.date('Y_m_d_His', time()).'_create_scout_database_words_table.php'),
-                __DIR__.'/../migrations/create_scout_database_documents_table.php' =>
+                __DIR__ . '/../migrations/0000_00_00_000001_create_scout_database_documents_table.php' =>
                     database_path('migrations/'.date('Y_m_d_His', time()+1).'_create_scout_database_documents_table.php'),
             ], 'migrations');
         }
@@ -98,17 +120,8 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
             $stemmer        = $app->make(Stemmer::class);
             $databaseHelper = $app->make(DatabaseHelper::class);
 
-            $indexingConfiguration = new IndexingConfiguration(
-                $config->get('scout-database.clean_words_table_on_every_update', true)
-            );
-
-            $searchConfiguration = new SearchConfiguration(
-                $config->get('scout-database.search.inverse_document_frequency_weight', 1),
-                $config->get('scout-database.search.term_frequency_weight', 1),
-                $config->get('scout-database.search.term_deviation_weight', 1),
-                $config->get('scout-database.search.wildcard_last_token', true),
-                $config->get('scout-database.search.require_match_for_all_tokens', false)
-            );
+            $indexingConfiguration = $app->make(IndexingConfiguration::class);
+            $searchConfiguration   = $app->make(SearchConfiguration::class);
 
             $indexer = new DatabaseIndexer($connection, $tokenizer, $stemmer, $databaseHelper, $indexingConfiguration);
             $seeker = new DatabaseSeeker($connection, $tokenizer, $stemmer, $databaseHelper, $searchConfiguration);

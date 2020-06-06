@@ -23,9 +23,17 @@
         "laravel/scout": "^7.0|^8.0",
         "wamania/php-stemmer": "^2.0"
     },
+    "require-dev": {
+        "orchestra/testbench": "^5.3"
+    },
     "autoload": {
         "psr-4": {
             "Namoshek\\Scout\\Database\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Namoshek\\Scout\\Database\\Tests\\": "tests"
         }
     },
     "config": {

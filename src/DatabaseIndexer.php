@@ -120,8 +120,8 @@ class DatabaseIndexer
                 // us to run less database queries which improves performance.
                 $documentsToDelete->mapToGroups(function (object $document) {
                     return [(int) $document->num_hits => (int) $document->word_id];
-                })->each(function (array $wordIds, int $numHits) {
-                    $this->reduceWordEntries($wordIds, $numHits);
+                })->each(function (Collection $wordIds, int $numHits) {
+                    $this->reduceWordEntries($wordIds->toArray(), $numHits);
                 });
 
                 // Remove words with a document or hit count of zero. We only run this
