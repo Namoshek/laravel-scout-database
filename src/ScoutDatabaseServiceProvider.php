@@ -7,6 +7,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
+use Namoshek\Scout\Database\Commands\CleanWordsTable;
 use Namoshek\Scout\Database\Contracts\Stemmer;
 use Namoshek\Scout\Database\Contracts\Tokenizer;
 use Namoshek\Scout\Database\Support\DatabaseHelper;
@@ -77,6 +78,10 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
             ], 'migrations');
         }
 
+        $this->commands([
+            CleanWordsTable::class,
+        ]);
+
         $this->app[EngineManager::class]->extend('database', function (Application $app) {
             /** @var ConfigRepository $config */
             $config = $app->make('config');
@@ -93,6 +98,10 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
             $stemmer        = $app->make(Stemmer::class);
             $databaseHelper = $app->make(DatabaseHelper::class);
 
+            $indexingConfiguration = new IndexingConfiguration(
+                $config->get('scout-database.clean_words_table_on_every_update', true)
+            );
+
             $searchConfiguration = new SearchConfiguration(
                 $config->get('scout-database.search.inverse_document_frequency_weight', 1),
                 $config->get('scout-database.search.term_frequency_weight', 1),
@@ -101,7 +110,7 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
                 $config->get('scout-database.search.require_match_for_all_tokens', false)
             );
 
-            $indexer = new DatabaseIndexer($connection, $tokenizer, $stemmer, $databaseHelper);
+            $indexer = new DatabaseIndexer($connection, $tokenizer, $stemmer, $databaseHelper, $indexingConfiguration);
             $seeker = new DatabaseSeeker($connection, $tokenizer, $stemmer, $databaseHelper, $searchConfiguration);
 
             return new DatabaseEngine($indexer, $seeker);

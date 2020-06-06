@@ -27,7 +27,7 @@ class SearchConfiguration
     protected $requireMatchForAllTokens;
 
     /**
-     * SearchWeights constructor.
+     * SearchConfiguration constructor.
      *
      * @param float $inverseDocumentFrequencyWeight
      * @param float $termFrequencyWeight

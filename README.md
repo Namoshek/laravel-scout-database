@@ -79,6 +79,22 @@ has been added for each of them:
 If you have different requirements for a stemmer, you can provide your own implementation via the configuration. Just make sure it implements the
 [`Stemmer`](src/Contracts/Stemmer.php) interface.
 
+### Keeping the Search Index clean
+
+By default, the database indexer will ensure the word index is kept clean with each index update. This may have a negative impact on the performance
+of the indexing process though. It is therefore possible and also recommended to opt out of the auto-cleaning and run a manual or scheduled
+cleaning job instead.
+
+In order to do so, the setting `clean_words_table_on_every_update` must be set to `false` in the configuration.
+Optionally (but recommended), the `\Namoshek\Scout\Database\Commands\CleanWordsTable` command should be scheduled to run regularly depending on
+the update frequency of your search index within the `schedule(Schedule $schedule)` method of your console `Kernel`:
+```php
+protected function schedule(Schedule $schedule)
+{
+    $schedule->command(\Namoshek\Scout\Database\Commands\CleanWordsTable::class)->daily();
+}
+```
+
 ## Usage
 
 The package follows the available use cases described in the [official Scout documentation](https://laravel.com/docs/7.x/scout).

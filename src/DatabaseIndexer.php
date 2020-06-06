@@ -33,25 +33,31 @@ class DatabaseIndexer
     /** @var DatabaseHelper */
     protected $databaseHelper;
 
+    /** @var IndexingConfiguration */
+    protected $indexingConfiguration;
+
     /**
      * DatabaseIndexer constructor.
      *
-     * @param ConnectionInterface $connection
-     * @param Tokenizer           $tokenizer
-     * @param Stemmer             $stemmer
-     * @param DatabaseHelper      $databaseHelper
+     * @param ConnectionInterface   $connection
+     * @param Tokenizer             $tokenizer
+     * @param Stemmer               $stemmer
+     * @param DatabaseHelper        $databaseHelper
+     * @param IndexingConfiguration $indexingConfiguration
      */
     public function __construct(
         ConnectionInterface $connection,
         Tokenizer $tokenizer,
         Stemmer $stemmer,
-        DatabaseHelper $databaseHelper
+        DatabaseHelper $databaseHelper,
+        IndexingConfiguration $indexingConfiguration
     )
     {
-        $this->connection     = $connection;
-        $this->tokenizer      = $tokenizer;
-        $this->stemmer        = $stemmer;
-        $this->databaseHelper = $databaseHelper;
+        $this->connection            = $connection;
+        $this->tokenizer             = $tokenizer;
+        $this->stemmer               = $stemmer;
+        $this->databaseHelper        = $databaseHelper;
+        $this->indexingConfiguration = $indexingConfiguration;
     }
 
     /**
@@ -118,8 +124,11 @@ class DatabaseIndexer
                     $this->reduceWordEntries($wordIds, $numHits);
                 });
 
-                // Remove words with a document or hit count of zero.
-                $this->deleteWordsWithoutAssociatedDocuments();
+                // Remove words with a document or hit count of zero. We only run this
+                // if the configuration requires it.
+                if ($this->indexingConfiguration->wordsTableShouldBeCleanedOnEveryUpdate()) {
+                    $this->deleteWordsWithoutAssociatedDocuments();
+                }
             });
         } catch (\Throwable $e) {
             throw new ScoutDatabaseException("Deleting entries from search index failed.", 0, $e);
@@ -150,6 +159,18 @@ class DatabaseIndexer
         } catch (\Throwable $e) {
             throw new ScoutDatabaseException("Deleting all entries of type from search index failed.", 0, $e);
         }
+    }
+
+    /**
+     * Delete all words from the database which have a document count of zero.
+     *
+     * @return void
+     */
+    public function deleteWordsWithoutAssociatedDocuments(): void
+    {
+        $this->connection->table($this->databaseHelper->wordsTable())
+            ->where('num_documents', 0)
+            ->delete();
     }
 
     /**
@@ -263,18 +284,6 @@ class DatabaseIndexer
                 'num_documents' => DB::raw("num_documents + $numDocuments"),
                 'num_hits' => DB::raw("num_hits + $numHits"),
             ]);
-    }
-
-    /**
-     * Delete all words from the database which have a document count of zero.
-     *
-     * @return void
-     */
-    protected function deleteWordsWithoutAssociatedDocuments(): void
-    {
-        $this->connection->table($this->databaseHelper->wordsTable())
-            ->where('num_documents', 0)
-            ->delete();
     }
 
     /**
