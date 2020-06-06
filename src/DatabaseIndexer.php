@@ -33,25 +33,31 @@ class DatabaseIndexer
     /** @var DatabaseHelper */
     protected $databaseHelper;
 
+    /** @var IndexingConfiguration */
+    protected $indexingConfiguration;
+
     /**
      * DatabaseIndexer constructor.
      *
-     * @param ConnectionInterface $connection
-     * @param Tokenizer           $tokenizer
-     * @param Stemmer             $stemmer
-     * @param DatabaseHelper      $databaseHelper
+     * @param ConnectionInterface   $connection
+     * @param Tokenizer             $tokenizer
+     * @param Stemmer               $stemmer
+     * @param DatabaseHelper        $databaseHelper
+     * @param IndexingConfiguration $indexingConfiguration
      */
     public function __construct(
         ConnectionInterface $connection,
         Tokenizer $tokenizer,
         Stemmer $stemmer,
-        DatabaseHelper $databaseHelper
+        DatabaseHelper $databaseHelper,
+        IndexingConfiguration $indexingConfiguration
     )
     {
-        $this->connection     = $connection;
-        $this->tokenizer      = $tokenizer;
-        $this->stemmer        = $stemmer;
-        $this->databaseHelper = $databaseHelper;
+        $this->connection            = $connection;
+        $this->tokenizer             = $tokenizer;
+        $this->stemmer               = $stemmer;
+        $this->databaseHelper        = $databaseHelper;
+        $this->indexingConfiguration = $indexingConfiguration;
     }
 
     /**
@@ -109,13 +115,20 @@ class DatabaseIndexer
                 $this->addDocumentConstraintsToBuilder($this->connection->table($this->databaseHelper->documentsTable()), $models)
                     ->delete();
 
-                // Update the document counter of the words table.
-                foreach ($documentsToDelete as $documentToDelete) {
-                    $this->reduceWordEntry((int) $documentToDelete->word_id, (int) $documentToDelete->num_hits);
-                }
+                // Update the document counter of the words table. In order to do so,
+                // we first group our deleted documents by their hit count. This allows
+                // us to run less database queries which improves performance.
+                $documentsToDelete->mapToGroups(function (object $document) {
+                    return [(int) $document->num_hits => (int) $document->word_id];
+                })->each(function (array $wordIds, int $numHits) {
+                    $this->reduceWordEntries($wordIds, $numHits);
+                });
 
-                // Remove words with a document or hit count of zero.
-                $this->deleteWordsWithoutAssociatedDocuments();
+                // Remove words with a document or hit count of zero. We only run this
+                // if the configuration requires it.
+                if ($this->indexingConfiguration->wordsTableShouldBeCleanedOnEveryUpdate()) {
+                    $this->deleteWordsWithoutAssociatedDocuments();
+                }
             });
         } catch (\Throwable $e) {
             throw new ScoutDatabaseException("Deleting entries from search index failed.", 0, $e);
@@ -146,6 +159,18 @@ class DatabaseIndexer
         } catch (\Throwable $e) {
             throw new ScoutDatabaseException("Deleting all entries of type from search index failed.", 0, $e);
         }
+    }
+
+    /**
+     * Delete all words from the database which have a document count of zero.
+     *
+     * @return void
+     */
+    public function deleteWordsWithoutAssociatedDocuments(): void
+    {
+        $this->connection->table($this->databaseHelper->wordsTable())
+            ->where('num_documents', 0)
+            ->delete();
     }
 
     /**
@@ -230,14 +255,14 @@ class DatabaseIndexer
     /**
      * Reduces an existing entry in the `words` table using the given parameters.
      *
-     * @param int $wordId
-     * @param int $numHits
-     * @param int $numDocuments
+     * @param int[] $wordIds
+     * @param int   $numHits
+     * @param int   $numDocuments
      */
-    protected function reduceWordEntry(int $wordId, int $numHits, int $numDocuments = 1): void
+    protected function reduceWordEntries(array $wordIds, int $numHits, int $numDocuments = 1): void
     {
         $this->connection->table($this->databaseHelper->wordsTable())
-            ->where('id', $wordId)
+            ->whereIn('id', $wordIds)
             ->update([
                 'num_documents' => DB::raw("num_documents - $numDocuments"),
                 'num_hits' => DB::raw("num_hits - $numHits"),
@@ -259,18 +284,6 @@ class DatabaseIndexer
                 'num_documents' => DB::raw("num_documents + $numDocuments"),
                 'num_hits' => DB::raw("num_hits + $numHits"),
             ]);
-    }
-
-    /**
-     * Delete all words from the database which have a document count of zero.
-     *
-     * @return void
-     */
-    protected function deleteWordsWithoutAssociatedDocuments(): void
-    {
-        $this->connection->table($this->databaseHelper->wordsTable())
-            ->where('num_documents', 0)
-            ->delete();
     }
 
     /**
