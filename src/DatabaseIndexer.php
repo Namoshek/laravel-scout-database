@@ -90,7 +90,7 @@ class DatabaseIndexer
                     // Saving the result to the index.
                     $this->saveDataToIndex($preparedStem['model'], $preparedStem['stems']);
                 }
-            });
+            }, $this->indexingConfiguration->getTransactionAttempts());
         } catch (\Throwable $e) {
             throw new ScoutDatabaseException("Extending or updating search index failed.", 0, $e);
         }
@@ -130,7 +130,7 @@ class DatabaseIndexer
                 if ($this->indexingConfiguration->wordsTableShouldBeCleanedOnEveryUpdate()) {
                     $this->deleteWordsWithoutAssociatedDocuments();
                 }
-            });
+            }, $this->indexingConfiguration->getTransactionAttempts());
         } catch (\Throwable $e) {
             throw new ScoutDatabaseException("Deleting entries from search index failed.", 0, $e);
         }
@@ -156,7 +156,7 @@ class DatabaseIndexer
                 $this->connection->table($this->databaseHelper->wordsTable())
                     ->where('document_type', $model->searchableAs())
                     ->delete();
-            });
+            }, $this->indexingConfiguration->getTransactionAttempts());
         } catch (\Throwable $e) {
             throw new ScoutDatabaseException("Deleting all entries of type from search index failed.", 0, $e);
         }
