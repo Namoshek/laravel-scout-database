@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Namoshek\Scout\Database\Tests;
 
+/**
+ * Base for all unit tests.
+ *
+ * @package Namoshek\Scout\Database\Tests
+ */
 abstract class TestCase extends \Orchestra\Testbench\TestCase
 {
     /**

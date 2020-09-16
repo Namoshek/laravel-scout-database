@@ -93,7 +93,7 @@ class DatabaseSeeker
         $searchTerm = mb_strtolower($builder->query);
 
         // Tokenize and stem our input. The result is a list of stemmed words.
-        $words = $this->tokenizer->tokenize((string) $searchTerm);
+        $words    = $this->tokenizer->tokenize((string) $searchTerm);
         $keywords = array_map(function ($word) {
             return $this->stemmer->stem($word);
         }, $words);
@@ -168,17 +168,20 @@ class DatabaseSeeker
             ])
             ->selectRaw(
                 '(' .
-                    '(1 + LOG(? * (CAST(info.cnt as float) / ((CASE WHEN w.num_documents > 1 THEN w.num_documents ELSE 1 END) + 1))))' . // inverse document frequency
+                    // inverse document frequency
+                    '(1 + LOG(? * (CAST(info.cnt as float) / ((CASE WHEN w.num_documents > 1 THEN w.num_documents ELSE 1 END) + 1))))' .
                     '* (' .
-                        '(CAST(? as float) * SQRT(d.num_hits))' .                                   // weighted term frequency
-                        '+ (CAST(? as float) * SQRT(CAST(1 as float) / (ABS(w.length - ?) + 1)))' . // term deviation (for wildcard search)
+                        // weighted term frequency
+                        '(CAST(? as float) * SQRT(d.num_hits))' .
+                        // term deviation (for wildcard search)
+                        '+ (CAST(? as float) * SQRT(CAST(1 as float) / (ABS(w.length - ?) + 1)))' .
                     ')' .
                 ') as score',
                 [
                     $this->searchConfiguration->getInverseDocumentFrequencyWeight(),
                     $this->searchConfiguration->getTermFrequencyWeight(),
                     $this->searchConfiguration->getTermDeviationWeight(),
-                    $keywordLength
+                    $keywordLength,
                 ]
             );
     }

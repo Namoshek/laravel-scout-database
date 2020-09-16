@@ -8,6 +8,11 @@ use Namoshek\Scout\Database\DatabaseIndexer;
 use Namoshek\Scout\Database\Stemmer\NullStemmer;
 use Namoshek\Scout\Database\Tests\Stubs\User;
 
+/**
+ * Tests for the {@see DatabaseIndexer} class.
+ *
+ * @package Namoshek\Scout\Database\Tests
+ */
 class DatabaseIndexerTest extends TestCase
 {
     protected function insertCommonTestDataInDatabase(): void
