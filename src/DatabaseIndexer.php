@@ -108,7 +108,8 @@ class DatabaseIndexer
         try {
             $this->connection->transaction(function () use ($models) {
                 // Find all documents to delete.
-                $documentsToDelete = $this->addDocumentConstraintsToBuilder($this->connection->table($this->databaseHelper->documentsTable()), $models)
+                $documentsToDelete = $this
+                    ->addDocumentConstraintsToBuilder($this->connection->table($this->databaseHelper->documentsTable()), $models)
                     ->get();
 
                 // Delete the documents from the documents table.

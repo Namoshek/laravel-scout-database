@@ -124,7 +124,7 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
             $searchConfiguration   = $app->make(SearchConfiguration::class);
 
             $indexer = new DatabaseIndexer($connection, $tokenizer, $stemmer, $databaseHelper, $indexingConfiguration);
-            $seeker = new DatabaseSeeker($connection, $tokenizer, $stemmer, $databaseHelper, $searchConfiguration);
+            $seeker  = new DatabaseSeeker($connection, $tokenizer, $stemmer, $databaseHelper, $searchConfiguration);
 
             return new DatabaseEngine($indexer, $seeker);
         });
