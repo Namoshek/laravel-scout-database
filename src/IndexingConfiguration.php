@@ -14,14 +14,19 @@ class IndexingConfiguration
     /** @var bool */
     protected $cleanWordsTableOnEveryUpdate;
 
+    /** @var int */
+    protected $transactionAttempts;
+
     /**
      * IndexingConfiguration constructor.
      *
      * @param bool $cleanWordsTableOnEveryUpdate
+     * @param int  $transactionAttempts
      */
-    public function __construct(bool $cleanWordsTableOnEveryUpdate)
+    public function __construct(bool $cleanWordsTableOnEveryUpdate, int $transactionAttempts = 1)
     {
         $this->cleanWordsTableOnEveryUpdate = $cleanWordsTableOnEveryUpdate;
+        $this->transactionAttempts          = $transactionAttempts;
     }
 
     /**
@@ -34,5 +39,16 @@ class IndexingConfiguration
     public function wordsTableShouldBeCleanedOnEveryUpdate(): bool
     {
         return $this->cleanWordsTableOnEveryUpdate;
+    }
+
+    /**
+     * Returns the number of attempts a transaction should be granted before
+     * throwing an exception in case of an error.
+     *
+     * @return int
+     */
+    public function getTransactionAttempts(): int
+    {
+        return $this->transactionAttempts;
     }
 }

@@ -81,6 +81,26 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Indexing Transaction Attempts
+    |--------------------------------------------------------------------------
+    |
+    | When concurrent access occurs to data which is being updated by the
+    | indexer, be it by a second indexing process or a search query, indexing
+    | might terminate with a deadlocked transaction. To avoid such abortion,
+    | a transaction can be run with multiple attempts. It will only fail and
+    | result in an exception if all attempts fail.
+    |
+    | This number defines the attempts granted for all transactions which the
+    | package, specifically the indexer, uses. A too low value might cause
+    | failed jobs, while a too high value can waste valuable resources by
+    | retrying too often. A sane value and also the default is 3.
+    |
+    */
+
+    'transaction_attempts' => 3,
+
+    /*
+    |--------------------------------------------------------------------------
     | Search related Settings
     |--------------------------------------------------------------------------
     |

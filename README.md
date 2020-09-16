@@ -138,13 +138,14 @@ wildcard search). Returned are documents ordered by their score in descending or
 Obviously, this package does not provide a search engine which (even remotely) brings the performance and quality a professional search engine
 like Elasticsearch offers. This solution is meant for smaller to medium-sized projects which are in need of a rather simple-to-setup solution.
 
-One issue with this search engine is that it leads to issues if multiple queue workers work on the indexing concurrently (database will deadlock).
-Therefore, the whole system is implicitly limited by the amount of data one queue worker is able to index. For projects with frequent data updates,
-this may imply that only a few thousand documents are already enough to bring the engine to its limits. If your project has only few
-(and regular instead of piled) updates, millions of documents may not be an issue at all. In short: if it works for you depends on the use case.
+One issue with this search engine is that it can lead to issues if multiple queue workers work on the indexing concurrently (database will deadlock).
+To circumvent this issue, a the number of attempts used for transactions is configurable. By default, each transaction is tried a maximum of three
+times if a deadlock (or any other error) occurs. The more workers are updating the index at the same time, the more attempts might be needed in order
+for the jobs to succeed.
 
-_Note: Use the `queue` setting in your `config/scout.php` to use a queue for indexing on which only one queue worker is active, if you run into issues
-with deadlocks. Running index updates synchronously (not queued) may break your application altogether._
+_Note: Use the `queue` setting in your `config/scout.php` to use a queue for indexing on which only few queue workers are active,
+if you run into issues with deadlocks. Running index updates synchronously (not queued) may break your application altogether,
+since the amount of concurrency is pretty much out of your control._
 
 ## Disclaimer
 
