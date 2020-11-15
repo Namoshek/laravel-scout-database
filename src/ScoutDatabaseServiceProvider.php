@@ -7,7 +7,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
-use Namoshek\Scout\Database\Commands\CleanWordsTable;
 use Namoshek\Scout\Database\Contracts\Stemmer;
 use Namoshek\Scout\Database\Contracts\Tokenizer;
 use Namoshek\Scout\Database\Support\DatabaseHelper;
@@ -102,10 +101,6 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
                     database_path('migrations/'.date('Y_m_d_His', time()+2).'_create_scout_database_index_table.php'),
             ], 'migrations');
         }
-
-        $this->commands([
-            CleanWordsTable::class,
-        ]);
 
         $this->app[EngineManager::class]->extend('database', function (Application $app) {
             /** @var ConfigRepository $config */
