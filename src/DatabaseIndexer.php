@@ -90,8 +90,8 @@ class DatabaseIndexer
                     $rowsToInsert[] = [
                         'document_type' => $model->searchableAs(),
                         'document_id' => $model->getKey(),
-                        'term' => $term,
-                        'length' => mb_strlen((string)$term),
+                        'term' => (string) $term,
+                        'length' => mb_strlen((string) $term),
                         'num_hits' => $hits,
                     ];
                 }
@@ -103,7 +103,10 @@ class DatabaseIndexer
 
                 // Add the new data to the index.
                 if (count($rowsToInsert) > 0) {
-                    $this->connection->table($this->databaseHelper->indexTable())->insert($rowsToInsert);
+                    $chunks = array_chunk($rowsToInsert, 100);
+                    foreach ($chunks as $chunk) {
+                        $this->connection->table($this->databaseHelper->indexTable())->insert($chunk);
+                    }
                 }
             }, $this->indexingConfiguration->getTransactionAttempts());
         } catch (\Throwable $e) {
@@ -122,7 +125,7 @@ class DatabaseIndexer
     {
         try {
             // Delete the documents from the documents table.
-            $this->addDocumentConstraintsToBuilder($this->connection->table($this->databaseHelper->indexTable()), $models)
+            $this->addRawDocumentConstraintsToBuilder($this->connection->table($this->databaseHelper->indexTable()), $models)
                 ->delete();
         } catch (\Throwable $e) {
             throw new ScoutDatabaseException("Deleting entries from search index failed.", 0, $e);
@@ -173,23 +176,26 @@ class DatabaseIndexer
      * Adds document type and identifier constraints for each of the models in the collection
      * to the given builder.
      *
+     * This method uses raw WHERE clauses because of performance. WHERE conditions with parameter
+     * binding are significantly slower (e.g. 40s vs. 50ms).
+     *
      * @param Builder                         $builder
      * @param Collection|Model[]|Searchable[] $models
      * @return Builder
      */
-    protected function addDocumentConstraintsToBuilder(Builder $builder, Collection $models): Builder
+    protected function addRawDocumentConstraintsToBuilder(Builder $builder, Collection $models): Builder
     {
         $index = 0;
         foreach ($models as $model) {
             if ($index === 0) {
                 $builder->where(function (Builder $query) use ($model) {
-                    $query->where('document_type', $model->searchableAs())
-                        ->where('document_id', $model->getKey());
+                    $query->whereRaw("document_type = '{$model->searchableAs()}'")
+                        ->whereRaw("document_id = {$model->getKey()}");
                 });
             } else {
                 $builder->orWhere(function (Builder $query) use ($model) {
-                    $query->where('document_type', $model->searchableAs())
-                        ->where('document_id', $model->getKey());
+                    $query->whereRaw("document_type = '{$model->searchableAs()}'")
+                        ->whereRaw("document_id = {$model->getKey()}");
                 });
             }
 

@@ -57,7 +57,6 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
             $config = $app->make('config');
 
             return new IndexingConfiguration(
-                $config->get('scout-database.clean_words_table_on_every_update', true),
                 $config->get('scout-database.transaction_attempts', 1)
             );
         });
