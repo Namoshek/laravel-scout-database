@@ -4,7 +4,7 @@
 [![Total Downloads](https://img.shields.io/packagist/dt/namoshek/laravel-scout-database.svg?style=flat-square)](https://packagist.org/packages/namoshek/laravel-scout-database)
 
 The package provides a generic Laravel Scout driver which performs full-text search on indexed model data using an SQL database as storage backend.
-Indexed data is stored in normalized form (a word list as well as a lookup table), allowing efficient search.
+Indexed data is stored in normalized form, allowing efficient search which does not require a full match.
 
 This driver is an alternative to [`teamtnt/laravel-scout-tntsearch-driver`](https://github.com/teamtnt/laravel-scout-tntsearch-driver).
 The primary difference is that this driver provides less features (like geo search). Instead it works with all database systems supported
@@ -79,22 +79,6 @@ has been added for each of them:
 If you have different requirements for a stemmer, you can provide your own implementation via the configuration. Just make sure it implements the
 [`Stemmer`](src/Contracts/Stemmer.php) interface.
 
-### Keeping the Search Index clean
-
-By default, the database indexer will ensure the word index is kept clean with each index update. This may have a negative impact on the performance
-of the indexing process though. It is therefore possible and also recommended to opt out of the auto-cleaning and run a manual or scheduled
-cleaning job instead.
-
-In order to do so, the setting `clean_words_table_on_every_update` must be set to `false` in the configuration.
-Optionally (but recommended), the `\Namoshek\Scout\Database\Commands\CleanWordsTable` command should be scheduled to run regularly depending on
-the update frequency of your search index within the `schedule(Schedule $schedule)` method of your console `Kernel`:
-```php
-protected function schedule(Schedule $schedule)
-{
-    $schedule->command(\Namoshek\Scout\Database\Commands\CleanWordsTable::class)->daily();
-}
-```
-
 ## Usage
 
 The package follows the available use cases described in the [official Scout documentation](https://laravel.com/docs/7.x/scout).
@@ -103,7 +87,7 @@ The package follows the available use cases described in the [official Scout doc
 
 #### The Indexing
 
-The search driver internally uses two database tables, one for words and one for document associations. When indexing documents (i.e. adding
+The search driver internally uses a single table, which contains terms and the association to documents. When indexing documents (i.e. adding
 or updating models in the search index) the engine will use the configured tokenizer to split the input of each column into tokens.
 The tokenizer configured by default simply splits inputs into words consisting of any unicode letter or number, which means any other character
 like `,`, `.`, `-`, `_`, `!`, `?`, `/`, whitespace and all other special characters are considered separators for the tokens and will be removed
@@ -114,15 +98,10 @@ stemmer to retrieve the stem (i.e. _root word_). Performing this action allows u
 The [`PorterStemmer`](src/Stemmer/PorterStemmer.php) for example will produce `intellig` as output for both `intelligent` as well as 
 `intelligence` as input. How this helps when searching will be clear in a moment.
 
-Finally, the results of this process are stored in the database. The _words_ table is filled with the results of the stemming process,
-while the _documents_ table contains associations between the indexed models (model type and identifier) as well as the indexed word.
-On top of that, for each word the database also contains the number of associated documents and the number of occurrences within these documents.
-The _documents_ table also contains the number of occurrences of the associated word within the document. We use this information for scoring
-within the search part of our engine.
-
-_Note: The indexer uses different entries in the words table for the same word, if the indexed documents are different. This is done in order
-to avoid search pollution of documents by documents of different type. Also, the way Laravel implements its search, indexes of different document
-types are expected to be separated as well._
+Finally, the results of this process are stored in the database. The _index_ table is filled with the results of the stemming process
+and the associations to the indexed models (model type and identifier).
+On top of that, for each row in the index, the database also contains the number of occurences in a document.
+We use this information for scoring within the search part of our engine.
 
 #### The Search
 
@@ -138,10 +117,10 @@ wildcard search). Returned are documents ordered by their score in descending or
 Obviously, this package does not provide a search engine which (even remotely) brings the performance and quality a professional search engine
 like Elasticsearch offers. This solution is meant for smaller to medium-sized projects which are in need of a rather simple-to-setup solution.
 
-One issue with this search engine is that it can lead to issues if multiple queue workers work on the indexing concurrently (database will deadlock).
+One issue with this search engine is that it can lead to issues if multiple queue workers work on the indexing of a single document concurrently
+(database will deadlock).
 To circumvent this issue, a the number of attempts used for transactions is configurable. By default, each transaction is tried a maximum of three
-times if a deadlock (or any other error) occurs. The more workers are updating the index at the same time, the more attempts might be needed in order
-for the jobs to succeed.
+times if a deadlock (or any other error) occurs.
 
 _Note: Use the `queue` setting in your `config/scout.php` to use a queue for indexing on which only few queue workers are active,
 if you run into issues with deadlocks. Running index updates synchronously (not queued) may break your application altogether,
