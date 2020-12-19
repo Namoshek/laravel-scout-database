@@ -22,7 +22,7 @@ class CreateScoutDatabaseIndexTable extends Migration
             $table->bigIncrements('id');
             $table->string('document_type');
             $table->unsignedBigInteger('document_id');
-            $table->string('term', '1024');
+            $table->string('term', '128');
             $table->unsignedInteger('length');
             $table->unsignedInteger('num_hits');
         });
@@ -59,7 +59,7 @@ SQL;
         Schema::connection(config('scout-database.connection'))->create('scout_words', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('document_type');
-            $table->string('term', '1024');
+            $table->string('term', '128');
             $table->unsignedInteger('num_hits');
             $table->unsignedInteger('num_documents');
             $table->unsignedInteger('length');
@@ -84,14 +84,17 @@ SQL;
 INSERT INTO scout_words (document_type, term, length, num_hits, num_documents)
 SELECT document_type, term, length, SUM(num_hits), COUNT(DISTINCT(document_id))
 FROM scout_index
-GROUP BY document_type, term, length;
+GROUP BY document_type, term, length
+SQL;
+        DB::connection(config('scout-database.connection'))->statement($sql);
 
+        $sql = <<<SQL
 INSERT INTO scout_documents (document_type, document_id, word_id, num_hits)
 SELECT i.document_type, i.document_id, w.id, i.num_hits
 FROM scout_index i
 INNER JOIN scout_words w
     ON w.document_type = i.document_type
-    AND w.term = i.term;
+    AND w.term = i.term
 SQL;
         DB::connection(config('scout-database.connection'))->statement($sql);
 
