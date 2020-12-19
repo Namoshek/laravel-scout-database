@@ -25,6 +25,53 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     }
 
     /**
+     * Define environment setup.
+     *
+     * @param \Illuminate\Foundation\Application $app
+     * @return void
+     */
+    protected function getEnvironmentSetUp($app)
+    {
+        // The full path to the file used as sqlite database.
+        $sqliteDatabaseFile = __DIR__.'/test.sqlite.db';
+
+        // Ensure an sqlite database file exists.
+        touch($sqliteDatabaseFile);
+
+        // Setup configuration for different types of supported databases.
+        $app['config']->set('database.connections.sqlite_inmemory', [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+            'prefix'   => '',
+        ]);
+        $app['config']->set('database.connections.sqlite_file', [
+            'driver' => 'sqlite',
+            'database' => $sqliteDatabaseFile,
+            'prefix' => '',
+            'foreign_key_constraints' => false,
+        ]);
+        $app['config']->set('database.connections.sqlsrv', [
+            'driver' => 'sqlsrv',
+            'host' => env('DB_SQLSRV_HOST', '127.0.0.1'),
+            'port' => env('DB_SQLSRV_PORT', '1433'),
+            'database' => env('DB_SQLSRV_DATABASE'),
+            'username' => env('DB_SQLSRV_USERNAME'),
+            'password' => env('DB_SQLSRV_PASSWORD'),
+            'charset' => 'utf8',
+            'prefix' => '',
+        ]);
+        $app['config']->set('database.connections.mysql', [
+            'driver' => 'mysql',
+            'host' => env('DB_MYSQL_HOST', '127.0.0.1'),
+            'port' => env('DB_MYSQL_PORT', '3306'),
+            'database' => env('DB_MYSQL_DATABASE'),
+            'username' => env('DB_MYSQL_USERNAME'),
+            'password' => env('DB_MYSQL_PASSWORD'),
+            'prefix' => '',
+        ]);
+    }
+
+    /**
      * Setup the test environment.
      *
      * @return void
