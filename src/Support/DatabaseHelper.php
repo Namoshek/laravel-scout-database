@@ -36,22 +36,12 @@ class DatabaseHelper
     }
 
     /**
-     * Returns the prefixed table name of the words table.
+     * Returns the prefixed table name of the index table.
      *
      * @return string
      */
-    public function wordsTable(): string
+    public function indexTable(): string
     {
-        return $this->prefixTable('words');
-    }
-
-    /**
-     * Returns the prefixed table name of the documents table.
-     *
-     * @return string
-     */
-    public function documentsTable(): string
-    {
-        return $this->prefixTable('documents');
+        return $this->prefixTable('index');
     }
 }

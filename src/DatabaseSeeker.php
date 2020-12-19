@@ -7,7 +7,7 @@ namespace Namoshek\Scout\Database;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Database\Query\JoinClause;
+use Illuminate\Support\Facades\DB;
 use Laravel\Scout\Builder;
 use Laravel\Scout\Searchable;
 use Namoshek\Scout\Database\Contracts\Stemmer;
@@ -86,47 +86,124 @@ class DatabaseSeeker
         /** @var int|null $limit */
         $limit = $pageSize ?? $builder->limit;
 
-        // Ensure that only positive page numberes are used in the query.
+        // Ensure that only positive page numbers are used in the query.
         $page = max($page, 1);
 
-        // Normalize the search term. We only store lower case words in the index for easier lookups.
-        $searchTerm = mb_strtolower($builder->query);
-
-        // Tokenize and stem our input. The result is a list of stemmed words.
-        $words    = $this->tokenizer->tokenize((string) $searchTerm);
-        $keywords = array_map(function ($word) {
-            return $this->stemmer->stem($word);
-        }, $words);
+        // Retrieve keywords to search for from the search string.
+        $keywords = $this->getTokenizedStemsFromSearchString($builder->query);
 
         // Exit search early if we have no input to search for. This should not happen at all.
         if (empty($keywords)) {
             return new SearchResult($builder, []);
         }
 
+        $results = $this->performSearch($model, $page, $pageSize, $limit, $keywords);
+
+        return new SearchResult($builder, $results);
+    }
+
+    /**
+     * Performs the actual search by querying the database.
+     *
+     * @param Model|Searchable $model
+     * @param int              $page
+     * @param int|null         $pageSize
+     * @param int|null         $limit
+     * @param string[]         $keywords
+     * @return array
+     */
+    protected function performSearch(Model $model, int $page, ?int $pageSize, ?int $limit, array $keywords): array
+    {
         // Add a wildcard to the last search token if it is configured.
         if ($this->searchConfiguration->lastTokenShouldUseWildcard()) {
             $keywords[count($keywords) - 1] .= '%';
         }
 
         // The actual search is performed entirely within the database.
-        $results = $this->connection
-            ->table(function (QueryBuilder $query) use ($model, $keywords) {
-                foreach ($keywords as $index => $keyword) {
-                    if ($index === 0) {
-                        $this->scoringQuery($query, $model->searchableAs(), $keyword);
-                    } else {
-                        $query->union(function (QueryBuilder $query) use ($model, $keyword) {
-                            $this->scoringQuery($query, $model->searchableAs(), $keyword);
-                        });
-                    }
+        return $this->connection
+            ->table('matches_with_score')
+            ->withExpression('document_index', function (QueryBuilder $query) use ($model) {
+                $query->from($this->databaseHelper->indexTable())
+                    ->where('document_type', $model->searchableAs())
+                    ->select([
+                        'id',
+                        'document_id',
+                        'term',
+                        'length',
+                        'num_hits',
+                    ]);
+            })
+            ->withExpression('term_frequency', function (QueryBuilder $query) {
+                $query->from('document_index')
+                    ->select([
+                        'term',
+                        DB::raw('SUM(num_hits) as occurrences'),
+                    ])
+                    ->groupBy('term');
+            })
+            ->withExpression('documents_in_index', function (QueryBuilder $query) use ($model) {
+                $query->from($this->databaseHelper->indexTable())
+                    ->where('document_type', $model->searchableAs())
+                    ->select([
+                        'document_type',
+                        DB::raw('COUNT(DISTINCT(document_id)) as cnt'),
+                    ])
+                    ->groupBy('document_type');
+            })
+            ->withExpression('matching_terms', function (QueryBuilder $query) use ($keywords) {
+                $query->from('document_index')
+                    ->select([
+                        DB::raw("'0' as term"),
+                        DB::raw('0 as length'),
+                    ])
+                    ->whereRaw('0 = 1');
+
+                foreach ($keywords as $keyword) {
+                    $query->union(function (QueryBuilder $query) use ($keyword) {
+                        $keywordLength = mb_strlen(rtrim($keyword, '%'));
+
+                        $query->from('document_index')
+                            ->where('term', 'like', $keyword)
+                            ->select([
+                                DB::raw('DISTINCT(term) as term'),
+                                DB::raw($keywordLength . ' as length'),
+                            ]);
+                    });
                 }
-            }, 'rated_documents')
+            })
+            ->withExpression('matches_with_score', function (QueryBuilder $query) {
+                $query->from('document_index', 'di')
+                    ->join('term_frequency as tf', 'tf.term', '=', 'di.term')
+                    ->join('matching_terms as mt', 'mt.term', '=', 'di.term')
+                    ->select([
+                        'di.document_id',
+                        'di.term',
+                    ])
+                    ->selectRaw(
+                        '(' .
+                            // inverse document frequency
+                            '(1 + LOG(? * (CAST((SELECT cnt FROM documents_in_index) as float) ' .
+                                '/ ((CASE WHEN tf.occurrences > 1 THEN tf.occurrences ELSE 1 END) + 1))))' .
+                            '* (' .
+                                // weighted term frequency
+                                '(CAST(? as float) * SQRT(di.num_hits))' .
+                                // term deviation (for wildcard search)
+                                '+ (CAST(? as float) * SQRT(CAST(1 as float) / (ABS(di.length - mt.length) + 1)))' .
+                            ')' .
+                        ') as score',
+                        [
+                            $this->searchConfiguration->getInverseDocumentFrequencyWeight(),
+                            $this->searchConfiguration->getTermFrequencyWeight(),
+                            $this->searchConfiguration->getTermDeviationWeight(),
+                        ]
+                    );
+            })
             ->select('document_id')
             ->groupBy('document_id')
             ->when($this->searchConfiguration->requireMatchForAllTokens(), function (QueryBuilder $query) use ($keywords) {
-                $query->havingRaw('COUNT(DISTINCT(word_id)) >= CAST(? as int)', [count($keywords)]);
+                $query->havingRaw('COUNT(DISTINCT(term)) >= CAST(? as int)', [count($keywords)]);
             })
-            ->orderByRaw('SQRT(COUNT(DISTINCT(word_id))) * SUM(score) DESC')
+            ->orderByRaw('SQRT(COUNT(DISTINCT(term))) * SUM(score) DESC')
             ->when($pageSize !== null, function (QueryBuilder $query) use ($pageSize, $page) {
                 $query->offset(($page - 1) * $pageSize);
             })
@@ -135,54 +212,24 @@ class DatabaseSeeker
             })
             ->pluck('document_id')
             ->all();
-
-        return new SearchResult($builder, $results);
     }
 
     /**
-     * Adds the inner scoring query to the given query builder.
+     * Retrieve tokenized stems from the given search string.
      *
-     * @param QueryBuilder $query
-     * @param string       $documentType
-     * @param string       $keyword
-     * @return void
+     * @param string $searchString
+     * @return string[]
      */
-    protected function scoringQuery(QueryBuilder $query, string $documentType, string $keyword): void
+    protected function getTokenizedStemsFromSearchString(string $searchString): array
     {
-        $keywordLength = mb_strlen(rtrim($keyword, '%'));
+        // Normalize the search term. We only store lower case words in the index for easier lookups.
+        $searchTerm = mb_strtolower($searchString);
 
-        $query->from($this->databaseHelper->documentsTable(), 'd')
-            ->join($this->databaseHelper->wordsTable() . ' as w', 'w.id', '=', 'd.word_id')
-            ->joinSub(function (QueryBuilder $query) use ($documentType) {
-                $query->from($this->databaseHelper->documentsTable())
-                    ->where('document_type', $documentType)
-                    ->selectRaw('COUNT(DISTINCT(document_id)) as cnt');
-            }, 'info', function (JoinClause $join) {
-                $join->whereRaw('1 = 1');
-            })
-            ->where('d.document_type', $documentType)
-            ->where('w.term', 'like', $keyword)
-            ->select([
-                'd.document_id',
-                'd.word_id',
-            ])
-            ->selectRaw(
-                '(' .
-                    // inverse document frequency
-                    '(1 + LOG(? * (CAST(info.cnt as float) / ((CASE WHEN w.num_documents > 1 THEN w.num_documents ELSE 1 END) + 1))))' .
-                    '* (' .
-                        // weighted term frequency
-                        '(CAST(? as float) * SQRT(d.num_hits))' .
-                        // term deviation (for wildcard search)
-                        '+ (CAST(? as float) * SQRT(CAST(1 as float) / (ABS(w.length - ?) + 1)))' .
-                    ')' .
-                ') as score',
-                [
-                    $this->searchConfiguration->getInverseDocumentFrequencyWeight(),
-                    $this->searchConfiguration->getTermFrequencyWeight(),
-                    $this->searchConfiguration->getTermDeviationWeight(),
-                    $keywordLength,
-                ]
-            );
+        // Tokenize and stem our input. The result is a list of stemmed words.
+        $words = $this->tokenizer->tokenize((string) $searchTerm);
+
+        return array_map(function ($word) {
+            return $this->stemmer->stem($word);
+        }, $words);
     }
 }

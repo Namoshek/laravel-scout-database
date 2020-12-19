@@ -64,23 +64,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Clean the Words Table on every Update
-    |--------------------------------------------------------------------------
-    |
-    | If this setting is enabled, entries in the words table associated with
-    | no documents are removed on every update of the search index.
-    |
-    | Disabling this setting may improve the speed of the indexing process
-    | significantly. It is recommended to run the cleanup command as scheduled
-    | job on a regular basis instead though. See the documentation for more
-    | details.
-    |
-    */
-
-    'clean_words_table_on_every_update' => true,
-
-    /*
-    |--------------------------------------------------------------------------
     | Indexing Transaction Attempts
     |--------------------------------------------------------------------------
     |

@@ -11,34 +11,17 @@ namespace Namoshek\Scout\Database;
  */
 class IndexingConfiguration
 {
-    /** @var bool */
-    protected $cleanWordsTableOnEveryUpdate;
-
     /** @var int */
     protected $transactionAttempts;
 
     /**
      * IndexingConfiguration constructor.
      *
-     * @param bool $cleanWordsTableOnEveryUpdate
-     * @param int  $transactionAttempts
+     * @param int $transactionAttempts
      */
-    public function __construct(bool $cleanWordsTableOnEveryUpdate, int $transactionAttempts = 1)
+    public function __construct(int $transactionAttempts = 3)
     {
-        $this->cleanWordsTableOnEveryUpdate = $cleanWordsTableOnEveryUpdate;
-        $this->transactionAttempts          = $transactionAttempts;
-    }
-
-    /**
-     * Returns whether the words table should be cleaned on every update.
-     * If this setting is set to true, every index update will ensure the
-     * words table does not contain any entries without associated documents.
-     *
-     * @return bool
-     */
-    public function wordsTableShouldBeCleanedOnEveryUpdate(): bool
-    {
-        return $this->cleanWordsTableOnEveryUpdate;
+        $this->transactionAttempts = $transactionAttempts;
     }
 
     /**
