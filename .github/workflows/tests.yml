@@ -9,9 +9,25 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest]
         php-versions: ['7.3', '7.4', '8.0']
+        db-connection: ['sqlite_inmemory', 'sqlite_file', 'mysql']
     name: PHP ${{ matrix.php-versions }} tests on ${{ matrix.operating-system }}
     steps:
       - uses: actions/checkout@v2
+
+      - name: Shutdown Ubuntu built-in MySQL
+        if: matrix.db-connection == 'mysql'
+        run: sudo service mysql stop
+
+      - uses: mirromutth/mysql-action@v1.1
+        if: matrix.db-connection == 'mysql'
+        with:
+          host port: 3306
+          character set server: 'utf8mb4'
+          collation server: 'utf8mb4_general_ci'
+          mysql version: '5.7'
+          mysql database: 'scoutdb'
+          mysql user: 'scoutdb'
+          mysql password: 's3cur3d123!'
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -38,6 +54,10 @@ jobs:
 
       - name: Install composer dependencies
         run: composer install --prefer-dist
+
+      - name: Set test database connection to sqlite
+        env:
+          DB_CONNECTION: ${{ matrix.db-connection }}
 
       - name: Run phpunit tests
         run: composer test
