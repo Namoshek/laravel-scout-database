@@ -69,6 +69,15 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             'password' => env('DB_MYSQL_PASSWORD'),
             'prefix' => '',
         ]);
+        $app['config']->set('database.connections.pgsql', [
+            'driver' => 'pgsql',
+            'host' => env('DB_PGSQL_HOST', '127.0.0.1'),
+            'port' => env('DB_PGSQL_PORT', '5432'),
+            'database' => env('DB_PGSQL_DATABASE'),
+            'username' => env('DB_PGSQL_USERNAME'),
+            'password' => env('DB_PGSQL_PASSWORD'),
+            'prefix' => '',
+        ]);
     }
 
     /**
