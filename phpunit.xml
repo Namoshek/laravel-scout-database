@@ -17,6 +17,11 @@
         <env name="DB_MYSQL_DATABASE" value="scoutdb"/>
         <env name="DB_MYSQL_USERNAME" value="scoutdb"/>
         <env name="DB_MYSQL_PASSWORD" value="s3cur3d123!"/>
+        <env name="DB_PGSQL_HOST" value="127.0.0.1"/>
+        <env name="DB_PGSQL_PORT" value="5432"/>
+        <env name="DB_PGSQL_DATABASE" value="scoutdb"/>
+        <env name="DB_PGSQL_USERNAME" value="scoutdb"/>
+        <env name="DB_PGSQL_PASSWORD" value="s3cur3d123!"/>
     </php>
     <testsuites>
         <testsuite name="Test">

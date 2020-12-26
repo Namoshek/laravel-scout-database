@@ -9,7 +9,7 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest]
         php-versions: ['7.3', '7.4', '8.0']
-        db-connection: ['sqlite_inmemory', 'sqlite_file', 'mysql']
+        db-connection: ['sqlite_inmemory', 'sqlite_file', 'mysql', 'pgsql']
     name: PHP ${{ matrix.php-versions }} tests on ${{ matrix.operating-system }}
     steps:
       - uses: actions/checkout@v2
@@ -28,6 +28,14 @@ jobs:
           mysql database: 'scoutdb'
           mysql user: 'scoutdb'
           mysql password: 's3cur3d123!'
+
+      - uses: harmon758/postgresql-action@v1
+        if: matrix.db-connection == 'pgsql'
+        with:
+          postgresql version: '13.1'
+          postgresql db: 'scoutdb'
+          postgresql user: 'scoutdb'
+          postgresql password: 'secur3d123!'
 
       - uses: shivammathur/setup-php@v2
         with:
