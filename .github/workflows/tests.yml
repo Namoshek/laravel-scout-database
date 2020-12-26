@@ -35,7 +35,7 @@ jobs:
           postgresql version: '13.1'
           postgresql db: 'scoutdb'
           postgresql user: 'scoutdb'
-          postgresql password: 'secur3d123!'
+          postgresql password: 's3cur3d123!'
 
       - uses: shivammathur/setup-php@v2
         with:
