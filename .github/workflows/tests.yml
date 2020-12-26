@@ -55,9 +55,7 @@ jobs:
       - name: Install composer dependencies
         run: composer install --prefer-dist
 
-      - name: Set test database connection to sqlite
-        env:
-          DB_CONNECTION: ${{ matrix.db-connection }}
-
       - name: Run phpunit tests
         run: composer test
+        env:
+          DB_CONNECTION: ${{ matrix.db-connection }}
