@@ -24,7 +24,7 @@ jobs:
           host port: 3306
           character set server: 'utf8mb4'
           collation server: 'utf8mb4_general_ci'
-          mysql version: '5.7'
+          mysql version: '8.0'
           mysql database: 'scoutdb'
           mysql user: 'scoutdb'
           mysql password: 's3cur3d123!'
