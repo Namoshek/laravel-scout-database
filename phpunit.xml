@@ -12,6 +12,21 @@
     <php>
         <env name="APP_KEY" value="nutfSECXIvnK5r28GVIWUAxmbBSjTsmF"/>
         <env name="DB_CONNECTION" value="sqlite_inmemory"/>
+        <env name="DB_SQLSRV_HOST" value="127.0.0.1"/>
+        <env name="DB_SQLSRV_PORT" value="1433"/>
+        <env name="DB_SQLSRV_DATABASE" value="master"/>
+        <env name="DB_SQLSRV_USERNAME" value="sa"/>
+        <env name="DB_SQLSRV_PASSWORD" value="s3cur3d123!"/>
+        <env name="DB_MYSQL_HOST" value="127.0.0.1"/>
+        <env name="DB_MYSQL_PORT" value="3306"/>
+        <env name="DB_MYSQL_DATABASE" value="scoutdb"/>
+        <env name="DB_MYSQL_USERNAME" value="scoutdb"/>
+        <env name="DB_MYSQL_PASSWORD" value="s3cur3d123!"/>
+        <env name="DB_PGSQL_HOST" value="127.0.0.1"/>
+        <env name="DB_PGSQL_PORT" value="5432"/>
+        <env name="DB_PGSQL_DATABASE" value="scoutdb"/>
+        <env name="DB_PGSQL_USERNAME" value="scoutdb"/>
+        <env name="DB_PGSQL_PASSWORD" value="s3cur3d123!"/>
     </php>
     <testsuites>
         <testsuite name="Test">

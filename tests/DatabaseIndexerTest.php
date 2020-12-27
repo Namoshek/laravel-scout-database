@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Namoshek\Scout\Database\Tests;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Namoshek\Scout\Database\DatabaseIndexer;
 use Namoshek\Scout\Database\Stemmer\NullStemmer;
 use Namoshek\Scout\Database\Tests\Stubs\User;
@@ -16,7 +16,7 @@ use Namoshek\Scout\Database\Tests\Stubs\User;
  */
 class DatabaseIndexerTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseMigrations;
 
     protected function insertCommonTestDataInDatabase(): void
     {

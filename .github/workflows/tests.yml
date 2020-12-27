@@ -9,9 +9,39 @@ jobs:
       matrix:
         operating-system: [ubuntu-latest]
         php-versions: ['7.3', '7.4', '8.0']
+        db-connection: ['sqlite_inmemory', 'sqlite_file', 'mysql', 'pgsql', 'sqlsrv']
     name: PHP ${{ matrix.php-versions }} tests on ${{ matrix.operating-system }}
     steps:
       - uses: actions/checkout@v2
+
+      - name: Shutdown Ubuntu built-in MySQL
+        if: matrix.db-connection == 'mysql'
+        run: sudo service mysql stop
+
+      - uses: mirromutth/mysql-action@v1.1
+        if: matrix.db-connection == 'mysql'
+        with:
+          host port: 3306
+          character set server: 'utf8mb4'
+          collation server: 'utf8mb4_general_ci'
+          mysql version: '5.7'
+          mysql database: 'scoutdb'
+          mysql user: 'scoutdb'
+          mysql password: 's3cur3d123!'
+
+      - uses: harmon758/postgresql-action@v1
+        if: matrix.db-connection == 'pgsql'
+        with:
+          postgresql version: '13.1'
+          postgresql db: 'scoutdb'
+          postgresql user: 'scoutdb'
+          postgresql password: 's3cur3d123!'
+
+      - uses: 280780363/sqlserver-action@v1.0
+        if: matrix.db-connection == 'sqlsrv'
+        with:
+          accept eula: 'Y'
+          sa password: 's3cur3d123!'
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -41,3 +71,5 @@ jobs:
 
       - name: Run phpunit tests
         run: composer test
+        env:
+          DB_CONNECTION: ${{ matrix.db-connection }}
