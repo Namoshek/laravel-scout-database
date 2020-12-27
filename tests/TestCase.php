@@ -20,7 +20,9 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     protected function getPackageProviders($app): array
     {
         return [
+            \Laravel\Scout\ScoutServiceProvider::class,
             \Namoshek\Scout\Database\ScoutDatabaseServiceProvider::class,
+            \Staudenmeir\LaravelCte\DatabaseServiceProvider::class,
         ];
     }
 
