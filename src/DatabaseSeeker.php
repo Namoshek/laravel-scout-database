@@ -186,11 +186,12 @@ class DatabaseSeeker
                     ->selectRaw(
                         'CASE WHEN mt.term IS NOT NULL THEN (' .
                             // inverse document frequency
-                            "(1 + LOG({$this->searchConfiguration->getInverseDocumentFrequencyWeight()} * ((SELECT cnt FROM documents_in_index) " .
-                                '/ ((CASE WHEN tf.occurrences > 1 THEN tf.occurrences ELSE 1 END) + 1))))' .
+                            "(1 + LOG({$this->searchConfiguration->getInverseDocumentFrequencyWeight()} " .
+                                "* (CAST((SELECT cnt FROM documents_in_index) as float) " .
+                                    '/ ((CASE WHEN tf.occurrences > 1 THEN tf.occurrences ELSE 1 END) + 1))))' .
                             '* (' .
                                 // weighted term frequency
-                                "({$this->searchConfiguration->getTermFrequencyWeight()} * SQRT(di.num_hits))" .
+                                "({$this->searchConfiguration->getTermFrequencyWeight()} * SQRT(CAST(di.num_hits as float)))" .
                                 // term deviation (for wildcard search)
                                 "+ ({$this->searchConfiguration->getTermDeviationWeight()} * SQRT(1.0 / (ABS(di.length - mt.length) + 1)))" .
                             ')' .
@@ -200,7 +201,8 @@ class DatabaseSeeker
             ->select('document_id')
             ->groupBy('document_id')
             ->when($this->searchConfiguration->requireMatchForAllTokens(), function (QueryBuilder $query) use ($keywords) {
-                $query->havingRaw('COUNT(DISTINCT(term)) >= CAST(? as int)', [count($keywords)]);
+                $keywordCount = count($keywords);
+                $query->havingRaw("COUNT(DISTINCT(term)) >= {$keywordCount}");
             })
             ->orderByRaw('SQRT(COUNT(DISTINCT(term))) * SUM(score) DESC')
             ->when($pageSize !== null, function (QueryBuilder $query) use ($pageSize, $page) {

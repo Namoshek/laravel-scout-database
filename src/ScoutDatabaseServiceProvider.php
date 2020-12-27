@@ -101,7 +101,7 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
             ], 'migrations');
         }
 
-        $this->app[EngineManager::class]->extend('database', function (Application $app) {
+        $this->app->make(EngineManager::class)->extend('database', function (Application $app) {
             /** @var ConfigRepository $config */
             $config = $app->make('config');
 
