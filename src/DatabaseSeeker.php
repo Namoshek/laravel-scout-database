@@ -201,7 +201,8 @@ class DatabaseSeeker
             ->select('document_id')
             ->groupBy('document_id')
             ->when($this->searchConfiguration->requireMatchForAllTokens(), function (QueryBuilder $query) use ($keywords) {
-                $query->havingRaw('COUNT(DISTINCT(term)) >= CAST(? as int)', [count($keywords)]);
+                $keywordCount = count($keywords);
+                $query->havingRaw("COUNT(DISTINCT(term)) >= {$keywordCount}");
             })
             ->orderByRaw('SQRT(COUNT(DISTINCT(term))) * SUM(score) DESC')
             ->when($pageSize !== null, function (QueryBuilder $query) use ($pageSize, $page) {
