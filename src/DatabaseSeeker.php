@@ -127,7 +127,7 @@ class DatabaseSeeker
         // If no pagination is used, we already retrieved all hits.
         if ($limit !== null) {
             $totalHits = $this->connection
-                ->table($this->createSearchQuery($builder, $keywords))
+                ->table($this->createSearchQuery($builder, $keywords), 'inner')
                 ->count();
         }
 
