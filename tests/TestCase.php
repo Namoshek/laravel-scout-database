@@ -1,5 +1,8 @@
 <?php
 
+/** @noinspection PhpFullyQualifiedNameUsageInspection */
+/** @noinspection PhpMissingParamTypeInspection */
+
 declare(strict_types=1);
 
 namespace Namoshek\Scout\Database\Tests;
