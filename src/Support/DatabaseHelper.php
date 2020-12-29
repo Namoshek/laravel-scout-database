@@ -12,7 +12,7 @@ namespace Namoshek\Scout\Database\Support;
 class DatabaseHelper
 {
     /** @var string */
-    protected $prefix;
+    private $prefix;
 
     /**
      * DatabaseHelper constructor.

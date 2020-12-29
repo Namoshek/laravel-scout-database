@@ -19,10 +19,10 @@ use Laravel\Scout\Searchable;
 class DatabaseEngine extends Engine
 {
     /** @var DatabaseIndexer */
-    protected $indexer;
+    private $indexer;
 
     /** @var DatabaseSeeker */
-    protected $seeker;
+    private $seeker;
 
     /**
      * DatabaseEngine constructor.
@@ -114,14 +114,20 @@ class DatabaseEngine extends Engine
      * @param SearchResult     $result
      * @param Model|Searchable $model
      * @return EloquentCollection
+     * @throws \InvalidArgumentException
      */
     public function map(Builder $builder, $result, $model): EloquentCollection
     {
-        if ($result->getHits() === 0) {
+        if (! $result instanceof SearchResult) {
+            throw new \InvalidArgumentException('The given result is not of the correct type.');
+        }
+
+        $objectIds = $result->getIdentifiers();
+
+        if (count($objectIds) === 0) {
             return EloquentCollection::make();
         }
 
-        $objectIds         = $result->getIdentifiers();
         $objectIdPositions = array_flip($objectIds);
 
         return $model->getScoutModelsByIds($builder, $objectIds)

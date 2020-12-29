@@ -12,7 +12,7 @@ namespace Namoshek\Scout\Database;
 class IndexingConfiguration
 {
     /** @var int */
-    protected $transactionAttempts;
+    private $transactionAttempts;
 
     /**
      * IndexingConfiguration constructor.

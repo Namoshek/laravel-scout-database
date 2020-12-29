@@ -12,19 +12,19 @@ namespace Namoshek\Scout\Database;
 class SearchConfiguration
 {
     /** @var float */
-    protected $inverseDocumentFrequencyWeight;
+    private $inverseDocumentFrequencyWeight;
 
     /** @var float */
-    protected $termFrequencyWeight;
+    private $termFrequencyWeight;
 
     /** @var float */
-    protected $termDeviationWeight;
+    private $termDeviationWeight;
 
     /** @var bool */
-    protected $wildcardLastToken;
+    private $wildcardLastToken;
 
     /** @var bool */
-    protected $requireMatchForAllTokens;
+    private $requireMatchForAllTokens;
 
     /**
      * SearchConfiguration constructor.

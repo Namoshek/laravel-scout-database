@@ -16,7 +16,7 @@ use Wamania\Snowball\StemmerFactory;
 abstract class SnowballStemmer implements Stemmer
 {
     /** @var \Wamania\Snowball\Stemmer\Stemmer */
-    protected $stemmer;
+    private $stemmer;
 
     /**
      * SnowballStemmer constructor.

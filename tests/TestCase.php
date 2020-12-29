@@ -1,5 +1,8 @@
 <?php
 
+/** @noinspection PhpFullyQualifiedNameUsageInspection */
+/** @noinspection PhpMissingParamTypeInspection */
+
 declare(strict_types=1);
 
 namespace Namoshek\Scout\Database\Tests;
@@ -80,6 +83,9 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             'password' => env('DB_PGSQL_PASSWORD'),
             'prefix' => '',
         ]);
+
+        // We use the database scout driver as default.
+        $app['config']->set('scout.driver', 'database');
     }
 
     /**
@@ -91,6 +97,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     {
         parent::setUp();
 
+        $this->loadLaravelMigrations();
         $this->loadMigrationsFrom(__DIR__ . '/../migrations');
     }
 }

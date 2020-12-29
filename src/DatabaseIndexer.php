@@ -22,19 +22,19 @@ use Namoshek\Scout\Database\Support\DatabaseHelper;
 class DatabaseIndexer
 {
     /** @var ConnectionInterface */
-    protected $connection;
+    private $connection;
 
     /** @var Tokenizer */
-    protected $tokenizer;
+    private $tokenizer;
 
     /** @var Stemmer */
-    protected $stemmer;
+    private $stemmer;
 
     /** @var DatabaseHelper */
-    protected $databaseHelper;
+    private $databaseHelper;
 
     /** @var IndexingConfiguration */
-    protected $indexingConfiguration;
+    private $indexingConfiguration;
 
     /**
      * DatabaseIndexer constructor.
@@ -159,7 +159,7 @@ class DatabaseIndexer
      * @param array $data
      * @return string[][]
      */
-    protected function normalizeSearchableData(array $data): array
+    private function normalizeSearchableData(array $data): array
     {
         return array_map(function ($value) {
             $value = mb_strtolower((string) $value);
@@ -183,7 +183,7 @@ class DatabaseIndexer
      * @param Collection|Model[]|Searchable[] $models
      * @return Builder
      */
-    protected function addRawDocumentConstraintsToBuilder(Builder $builder, Collection $models): Builder
+    private function addRawDocumentConstraintsToBuilder(Builder $builder, Collection $models): Builder
     {
         $index = 0;
         foreach ($models as $model) {
