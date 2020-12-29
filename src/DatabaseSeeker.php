@@ -113,7 +113,7 @@ class DatabaseSeeker
 
         // First, we retrieve the paginated results.
         $results = $this->createSearchQuery($builder, $keywords)
-            ->orderByRaw('SQRT(COUNT(DISTINCT(term))) * SUM(score) DESC')
+            ->orderByRaw('SQRT(COUNT(DISTINCT(term))) * SUM(score) DESC, document_id ASC')
             ->when($limit !== null, function (QueryBuilder $query) use ($limit, $page) {
                 $query->offset(($page - 1) * $limit)
                     ->take($limit);
