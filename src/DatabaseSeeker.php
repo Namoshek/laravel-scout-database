@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace Namoshek\Scout\Database;
 
 use Illuminate\Database\ConnectionInterface;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Laravel\Scout\Builder;
-use Laravel\Scout\Searchable;
 use Namoshek\Scout\Database\Contracts\Stemmer;
 use Namoshek\Scout\Database\Contracts\Tokenizer;
 use Namoshek\Scout\Database\Support\DatabaseHelper;
@@ -80,9 +78,6 @@ class DatabaseSeeker
      */
     public function search(Builder $builder, int $page = 1, int $pageSize = null): SearchResult
     {
-        /** @var Model|Searchable $model */
-        $model = $builder->model;
-
         /** @var int|null $limit */
         $limit = $pageSize ?? $builder->limit;
 
@@ -97,43 +92,72 @@ class DatabaseSeeker
             return new SearchResult($builder, []);
         }
 
-        $results = $this->performSearch($model, $page, $pageSize, $limit, $keywords);
-
-        return new SearchResult($builder, $results);
+        return $this->performSearch($builder, $keywords, $page, $limit);
     }
 
     /**
      * Performs the actual search by querying the database.
      *
-     * @param Model|Searchable $model
-     * @param int              $page
-     * @param int|null         $pageSize
-     * @param int|null         $limit
-     * @param string[]         $keywords
-     * @return array
+     * @param Builder  $builder
+     * @param string[] $keywords
+     * @param int      $page
+     * @param int|null $limit
+     * @return SearchResult
      */
-    protected function performSearch(Model $model, int $page, ?int $pageSize, ?int $limit, array $keywords): array
+    protected function performSearch(Builder $builder, array $keywords, int $page, ?int $limit): SearchResult
     {
         // Add a wildcard to the last search token if it is configured.
         if ($this->searchConfiguration->lastTokenShouldUseWildcard()) {
             $keywords[count($keywords) - 1] .= '%';
         }
 
-        // The actual search is performed entirely within the database.
+        // First, we retrieve the paginated results.
+        $results = $this->createSearchQuery($builder, $keywords)
+            ->orderByRaw('SQRT(COUNT(DISTINCT(term))) * SUM(score) DESC')
+            ->when($limit !== null, function (QueryBuilder $query) use ($limit, $page) {
+                $query->offset(($page - 1) * $limit)
+                    ->take($limit);
+            })
+            ->pluck('document_id')
+            ->all();
+
+        $totalHits = count($results);
+
+        // Then, and only if pagination is used, we retrieve the total number of potential hits.
+        // If no pagination is used, we already retrieved all hits.
+        if ($limit !== null) {
+            $totalHits = $this->connection
+                ->table($this->createSearchQuery($builder, $keywords))
+                ->count();
+        }
+
+        return new SearchResult($builder, $results, $totalHits);
+    }
+
+    /**
+     * Creates a new search query using the given builder. The query can be used to retrieve paginated results
+     * and also to count the total number of potential hits.
+     *
+     * @param Builder  $builder
+     * @param string[] $keywords
+     * @return QueryBuilder
+     */
+    private function createSearchQuery(Builder $builder, array $keywords): QueryBuilder
+    {
         return $this->connection
             ->table('matches_with_score')
-            ->withExpression('documents_in_index', function (QueryBuilder $query) use ($model) {
+            ->withExpression('documents_in_index', function (QueryBuilder $query) use ($builder) {
                 $query->from($this->databaseHelper->indexTable())
-                    ->whereRaw("document_type = '{$model->searchableAs()}'")
+                    ->whereRaw("document_type = '{$builder->model->searchableAs()}'")
                     ->select([
                         'document_type',
                         DB::raw('COUNT(DISTINCT(document_id)) as cnt'),
                     ])
                     ->groupBy('document_type');
             })
-            ->withExpression('document_index', function (QueryBuilder $query) use ($model) {
+            ->withExpression('document_index', function (QueryBuilder $query) use ($builder) {
                 $query->from($this->databaseHelper->indexTable())
-                    ->whereRaw("document_type = '{$model->searchableAs()}'")
+                    ->whereRaw("document_type = '{$builder->model->searchableAs()}'")
                     ->select([
                         'id',
                         'document_id',
@@ -203,16 +227,7 @@ class DatabaseSeeker
             ->when($this->searchConfiguration->requireMatchForAllTokens(), function (QueryBuilder $query) use ($keywords) {
                 $keywordCount = count($keywords);
                 $query->havingRaw("COUNT(DISTINCT(term)) >= {$keywordCount}");
-            })
-            ->orderByRaw('SQRT(COUNT(DISTINCT(term))) * SUM(score) DESC')
-            ->when($pageSize !== null, function (QueryBuilder $query) use ($pageSize, $page) {
-                $query->offset(($page - 1) * $pageSize);
-            })
-            ->when($limit, function (QueryBuilder $query) use ($limit) {
-                $query->take($limit);
-            })
-            ->pluck('document_id')
-            ->all();
+            });
     }
 
     /**
@@ -221,7 +236,7 @@ class DatabaseSeeker
      * @param string $searchString
      * @return string[]
      */
-    protected function getTokenizedStemsFromSearchString(string $searchString): array
+    private function getTokenizedStemsFromSearchString(string $searchString): array
     {
         // Normalize the search term. We only store lower case words in the index for easier lookups.
         $searchTerm = mb_strtolower($searchString);

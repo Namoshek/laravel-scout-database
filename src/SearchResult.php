@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Namoshek\Scout\Database;
 
+use Illuminate\Contracts\Support\Arrayable;
 use Laravel\Scout\Builder;
 
 /**
@@ -12,7 +13,7 @@ use Laravel\Scout\Builder;
  *
  * @package Namoshek\Scout\Database
  */
-class SearchResult
+class SearchResult implements Arrayable
 {
     /** @var Builder */
     protected $builder;
@@ -50,6 +51,8 @@ class SearchResult
     /**
      * Gets an array containing the document identifiers returned by the search.
      * The array is sorted with the highest scoring documents first.
+     * This list may contain less items than indicated by {@see getHits()} if the query
+     * builder applied a limit (e.g. in case of pagination).
      *
      * @return array|int[]
      */
@@ -66,5 +69,16 @@ class SearchResult
     public function getHits(): int
     {
         return $this->hits;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function toArray()
+    {
+        return [
+            'ids' => $this->getIdentifiers(),
+            'hits' => $this->getHits(),
+        ];
     }
 }

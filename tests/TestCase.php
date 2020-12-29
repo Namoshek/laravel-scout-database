@@ -80,6 +80,9 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             'password' => env('DB_PGSQL_PASSWORD'),
             'prefix' => '',
         ]);
+
+        // We use the database scout driver as default.
+        $app['config']->set('scout.driver', 'database');
     }
 
     /**
