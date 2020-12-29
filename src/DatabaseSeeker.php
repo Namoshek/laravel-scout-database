@@ -113,6 +113,7 @@ class DatabaseSeeker
 
         // First, we retrieve the paginated results.
         $results = $this->createSearchQuery($builder, $keywords)
+            ->groupBy('document_id')
             ->orderByRaw('SQRT(COUNT(DISTINCT(term))) * SUM(score) DESC, document_id ASC')
             ->when($limit !== null, function (QueryBuilder $query) use ($limit, $page) {
                 $query->offset(($page - 1) * $limit)
@@ -126,8 +127,8 @@ class DatabaseSeeker
         // Then, and only if pagination is used, we retrieve the total number of potential hits.
         // If no pagination is used, we already retrieved all hits.
         if ($limit !== null) {
-            $totalHits = $this->connection
-                ->table($this->createSearchQuery($builder, $keywords), 'inner')
+            $totalHits = $this->createSearchQuery($builder, $keywords)
+                ->distinct()
                 ->count();
         }
 
@@ -223,7 +224,6 @@ class DatabaseSeeker
                     );
             })
             ->select('document_id')
-            ->groupBy('document_id')
             ->when($this->searchConfiguration->requireMatchForAllTokens(), function (QueryBuilder $query) use ($keywords) {
                 $keywordCount = count($keywords);
                 $query->havingRaw("COUNT(DISTINCT(term)) >= {$keywordCount}");
