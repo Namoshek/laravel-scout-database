@@ -21,19 +21,19 @@ use Namoshek\Scout\Database\Support\DatabaseHelper;
 class DatabaseSeeker
 {
     /** @var ConnectionInterface */
-    protected $connection;
+    private $connection;
 
     /** @var Tokenizer */
-    protected $tokenizer;
+    private $tokenizer;
 
     /** @var Stemmer */
-    protected $stemmer;
+    private $stemmer;
 
     /** @var DatabaseHelper */
-    protected $databaseHelper;
+    private $databaseHelper;
 
     /** @var SearchConfiguration */
-    protected $searchConfiguration;
+    private $searchConfiguration;
 
     /**
      * DatabaseSeeker constructor.
@@ -104,7 +104,7 @@ class DatabaseSeeker
      * @param int|null $limit
      * @return SearchResult
      */
-    protected function performSearch(Builder $builder, array $keywords, int $page, ?int $limit): SearchResult
+    private function performSearch(Builder $builder, array $keywords, int $page, ?int $limit): SearchResult
     {
         // Add a wildcard to the last search token if it is configured.
         if ($this->searchConfiguration->lastTokenShouldUseWildcard()) {

@@ -16,13 +16,13 @@ use Laravel\Scout\Builder;
 class SearchResult implements Arrayable
 {
     /** @var Builder */
-    protected $builder;
+    private $builder;
 
     /** @var int[] */
-    protected $ids;
+    private $ids;
 
     /** @var int */
-    protected $hits;
+    private $hits;
 
     /**
      * SearchResult constructor.

@@ -19,10 +19,10 @@ use Laravel\Scout\Searchable;
 class DatabaseEngine extends Engine
 {
     /** @var DatabaseIndexer */
-    protected $indexer;
+    private $indexer;
 
     /** @var DatabaseSeeker */
-    protected $seeker;
+    private $seeker;
 
     /**
      * DatabaseEngine constructor.
