@@ -1,12 +1,14 @@
 <?php
 
+/** @noinspection PhpUndefinedFieldInspection */
+
 declare(strict_types=1);
 
 namespace Namoshek\Scout\Database\Tests;
 
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Laravel\Scout\EngineManager;
 use Namoshek\Scout\Database\DatabaseSeeker;
 use Namoshek\Scout\Database\Tests\Stubs\User;
 
@@ -26,7 +28,6 @@ class DatabaseSeekerTest extends TestCase
         // Define the default configuration for search tests.
         /** @var ConfigRepository $config */
         $config = $this->app->make('config');
-
         $config->set('scout-database.search.inverse_document_frequency_weight', 1);
         $config->set('scout-database.search.term_frequency_weight', 1);
         $config->set('scout-database.search.term_deviation_weight', 1);
@@ -39,7 +40,7 @@ class DatabaseSeekerTest extends TestCase
 
     protected function insertCommonTestDataInDatabase(): void
     {
-        /** @var \Illuminate\Database\ConnectionInterface $connection */
+        /** @var ConnectionInterface $connection */
         $connection = $this->app->make('db');
 
         $connection->table('scout_index')->insert([
@@ -60,14 +61,44 @@ class DatabaseSeekerTest extends TestCase
             ['document_type' => 'post', 'document_id' => 1, 'term' => 'abc', 'length' => 3, 'num_hits' => 1],
             ['document_type' => 'comment', 'document_id' => 3, 'term' => 'abc', 'length' => 3, 'num_hits' => 2],
         ]);
+
+        $connection->table('users')->insert([
+            ['id' => 1, 'name' => 'Max Mustermann', 'email' => 'max.mustermann@example.com', 'password' => '123456', 'remember_token' => now()],
+            ['id' => 2, 'name' => 'Mia Musterfrau', 'email' => 'mia.musterfrau@example.com', 'password' => '123456', 'remember_token' => now()],
+        ]);
     }
 
-    public function test_finds_documents_of_searched_type_which_have_term_with_exact_match(): void
+    public function test_finds_document_keys_of_searched_type_which_have_term_with_exact_match(): void
     {
         $result = User::search('abc')->raw();
 
         $this->assertSame(2, $result->getHits());
         $this->assertEquals([2, 1], $result->getIdentifiers());
+    }
+
+    public function test_finds_document_keys_of_searched_type_which_have_term_with_exact_match_2(): void
+    {
+        $result = User::search('abc')->keys();
+
+        $this->assertSame(2, $result->count());
+        $this->assertEquals([2, 1], $result->toArray());
+    }
+
+    public function test_finds_documents_of_searched_type_which_have_term_with_exact_match(): void
+    {
+        $result = User::search('abc')->get();
+
+        $this->assertSame(2, $result->count());
+        $this->assertEquals([2, 1], $result->pluck('id')->toArray());
+        $this->assertEquals('Mia Musterfrau', $result->shift()->name);
+        $this->assertEquals('Max Mustermann', $result->shift()->name);
+    }
+
+    public function test_finds_first_matching_document(): void
+    {
+        $result = User::search('abc')->first();
+
+        $this->assertEquals('Mia Musterfrau', $result->name);
     }
 
     public function test_finds_documents_of_searched_type_which_have_term_beginning_with_string(): void

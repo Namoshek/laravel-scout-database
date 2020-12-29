@@ -94,6 +94,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
     {
         parent::setUp();
 
+        $this->loadLaravelMigrations();
         $this->loadMigrationsFrom(__DIR__ . '/../migrations');
     }
 }
