@@ -56,6 +56,11 @@ class DatabaseSeekerTest extends TestCase
             ['document_type' => 'user', 'document_id' => 6, 'term' => 'euro', 'length' => 4, 'num_hits' => 1],
             ['document_type' => 'user', 'document_id' => 7, 'term' => 'euro', 'length' => 4, 'num_hits' => 1],
             ['document_type' => 'user', 'document_id' => 8, 'term' => 'cent', 'length' => 4, 'num_hits' => 1],
+            ['document_type' => 'user', 'document_id' => 100, 'term' => 'baz', 'length' => 3, 'num_hits' => 1],
+            ['document_type' => 'user', 'document_id' => 101, 'term' => 'baz', 'length' => 3, 'num_hits' => 1],
+            ['document_type' => 'user', 'document_id' => 102, 'term' => 'baz', 'length' => 3, 'num_hits' => 1],
+            ['document_type' => 'user', 'document_id' => 103, 'term' => 'baz', 'length' => 3, 'num_hits' => 1],
+            ['document_type' => 'user', 'document_id' => 104, 'term' => 'baz', 'length' => 3, 'num_hits' => 1],
             ['document_type' => 'post', 'document_id' => 1, 'term' => 'abc', 'length' => 3, 'num_hits' => 1],
             ['document_type' => 'comment', 'document_id' => 3, 'term' => 'abc', 'length' => 3, 'num_hits' => 2],
         ]);
@@ -153,5 +158,31 @@ class DatabaseSeekerTest extends TestCase
 
         $this->assertSame(3, $result->getHits());
         $this->assertEquals([8, 6, 7], $result->getIdentifiers());
+    }
+
+    public function test_finds_limited_amount_of_documents_if_limit_is_set(): void
+    {
+        $seeker = $this->app->make(DatabaseSeeker::class);
+        $result = $seeker->search(User::search('baz')->take(3));
+
+        $this->assertSame(3, $result->getHits());
+        $this->assertEquals([100, 101, 102], $result->getIdentifiers());
+    }
+
+    public function test_finds_paginated_documents_without_repetition_on_pages(): void
+    {
+        $seeker = $this->app->make(DatabaseSeeker::class);
+
+        $result = $seeker->search(User::search('baz')->take(2), 1, 2);
+        $this->assertSame(2, $result->getHits());
+        $this->assertEquals([100, 101], $result->getIdentifiers());
+
+        $result = $seeker->search(User::search('baz')->take(2), 2, 2);
+        $this->assertSame(2, $result->getHits());
+        $this->assertEquals([102, 103], $result->getIdentifiers());
+
+        $result = $seeker->search(User::search('baz')->take(2), 3, 2);
+        $this->assertSame(1, $result->getHits());
+        $this->assertEquals([104], $result->getIdentifiers());
     }
 }
