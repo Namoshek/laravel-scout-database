@@ -63,8 +63,8 @@ class DatabaseSeekerTest extends TestCase
         ]);
 
         $connection->table('users')->insert([
-            ['id' => 1, 'name' => 'Max Mustermann', 'email' => 'max.mustermann@example.com', 'password' => '123456', 'remember_token' => now()],
-            ['id' => 2, 'name' => 'Mia Musterfrau', 'email' => 'mia.musterfrau@example.com', 'password' => '123456', 'remember_token' => now()],
+            ['name' => 'Max Mustermann', 'email' => 'max.mustermann@example.com', 'password' => '123456', 'remember_token' => now()],
+            ['name' => 'Mia Musterfrau', 'email' => 'mia.musterfrau@example.com', 'password' => '123456', 'remember_token' => now()],
         ]);
     }
 
