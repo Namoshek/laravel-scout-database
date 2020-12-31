@@ -79,12 +79,13 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      *
      * @return void
+     * @throws \BadFunctionCallException
      */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             if (!function_exists('config_path') || !function_exists('database_path')) {
-                throw new \Exception('config_path() and/or database_path() function not found. Is the Laravel framework installed?');
+                throw new \BadFunctionCallException('config_path() and/or database_path() function not found. Is the Laravel framework installed?');
             }
 
             $this->publishes([

@@ -2,6 +2,13 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/namoshek/laravel-scout-database.svg?style=flat-square)](https://packagist.org/packages/namoshek/laravel-scout-database)
 [![Total Downloads](https://img.shields.io/packagist/dt/namoshek/laravel-scout-database.svg?style=flat-square)](https://packagist.org/packages/namoshek/laravel-scout-database)
+[![Tests](https://github.com/Namoshek/laravel-scout-database/workflows/Tests/badge.svg)](https://github.com/Namoshek/laravel-scout-database/actions?query=workflow%3ATests)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=namoshek_laravel-scout-database&metric=alert_status)](https://sonarcloud.io/dashboard?id=namoshek_laravel-scout-database)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=namoshek_laravel-scout-database&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=namoshek_laravel-scout-database)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=namoshek_laravel-scout-database&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=namoshek_laravel-scout-database)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=namoshek_laravel-scout-database&metric=security_rating)](https://sonarcloud.io/dashboard?id=namoshek_laravel-scout-database)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=namoshek_laravel-scout-database&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=namoshek_laravel-scout-database)
+[![License](https://poser.pugx.org/namoshek/laravel-scout-database/license)](https://packagist.org/packages/namoshek/laravel-scout-database)
 
 The package provides a generic Laravel Scout driver which performs full-text search on indexed model data using an SQL database as storage backend.
 Indexed data is stored in normalized form, allowing efficient search which does not require a full match.

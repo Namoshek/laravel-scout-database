@@ -10,6 +10,7 @@ use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Namoshek\Scout\Database\DatabaseSeeker;
+use Namoshek\Scout\Database\SearchResult;
 use Namoshek\Scout\Database\Tests\Stubs\User;
 
 /**
@@ -53,6 +54,8 @@ class DatabaseSeekerTest extends TestCase
             ['document_type' => 'user', 'document_id' => 6, 'term' => 'euro', 'length' => 4, 'num_hits' => 1],
             ['document_type' => 'user', 'document_id' => 7, 'term' => 'euro', 'length' => 4, 'num_hits' => 1],
             ['document_type' => 'user', 'document_id' => 8, 'term' => 'cent', 'length' => 4, 'num_hits' => 1],
+            ['document_type' => 'user', 'document_id' => 10, 'term' => 'hello', 'length' => 5, 'num_hits' => 1],
+            ['document_type' => 'user', 'document_id' => 11, 'term' => 'hello', 'length' => 5, 'num_hits' => 4],
             ['document_type' => 'user', 'document_id' => 100, 'term' => 'baz', 'length' => 3, 'num_hits' => 1],
             ['document_type' => 'user', 'document_id' => 101, 'term' => 'baz', 'length' => 3, 'num_hits' => 1],
             ['document_type' => 'user', 'document_id' => 102, 'term' => 'baz', 'length' => 3, 'num_hits' => 1],
@@ -70,18 +73,19 @@ class DatabaseSeekerTest extends TestCase
 
     public function test_finds_document_keys_of_searched_type_which_have_term_with_exact_match(): void
     {
-        $result = User::search('abc')->raw();
-
-        $this->assertSame(2, $result->getHits());
-        $this->assertEquals([2, 1], $result->getIdentifiers());
-    }
-
-    public function test_finds_document_keys_of_searched_type_which_have_term_with_exact_match_2(): void
-    {
         $result = User::search('abc')->keys();
 
         $this->assertSame(2, $result->count());
         $this->assertEquals([2, 1], $result->toArray());
+    }
+
+    public function test_finds_document_keys_of_searched_type_which_have_term_with_exact_match_2(): void
+    {
+        /** @var SearchResult $result */
+        $result = User::search('abc')->raw();
+
+        $this->assertSame(2, $result->getHits());
+        $this->assertEquals([2, 1], $result->getIdentifiers());
     }
 
     public function test_finds_documents_of_searched_type_which_have_term_with_exact_match(): void
@@ -101,80 +105,71 @@ class DatabaseSeekerTest extends TestCase
         $this->assertEquals('Mia Musterfrau', $result->name);
     }
 
-    public function test_finds_documents_of_searched_type_which_have_term_beginning_with_string(): void
+    public function test_finds_document_keys_of_searched_type_which_have_term_beginning_with_string(): void
     {
-        $result = User::search('ab')->raw();
+        $result = User::search('ab')->keys();
 
-        $this->assertSame(2, $result->getHits());
-        $this->assertEquals([2, 1], $result->getIdentifiers());
+        $this->assertEquals([2, 1], $result->toArray());
     }
 
     public function test_does_not_find_documents_if_wildcard_support_is_disabled_and_no_exact_match_is_given(): void
     {
         $this->app->make('config')->set('scout-database.search.wildcard_last_token', false);
 
-        $result = User::search('ab')->raw();
+        $result = User::search('ab')->keys();
 
-        $this->assertSame(0, $result->getHits());
-        $this->assertEquals([], $result->getIdentifiers());
+        $this->assertEmpty($result);
     }
 
     public function test_finds_no_documents_of_searched_type_if_no_term_matches(): void
     {
-        $result = User::search('somethingnotexisting')->raw();
+        $result = User::search('somethingnotexisting')->keys();
 
-        $this->assertSame(0, $result->getHits());
-        $this->assertEquals([], $result->getIdentifiers());
+        $this->assertEmpty($result);
     }
 
     public function test_finds_better_matching_documents_first(): void
     {
-        $result = User::search('foo')->raw();
+        $result = User::search('foo')->keys();
 
-        $this->assertSame(2, $result->getHits());
-        $this->assertEquals([4, 3], $result->getIdentifiers());
+        $this->assertEquals([4, 3], $result->toArray());
     }
 
     public function test_finds_better_matching_documents_first_2(): void
     {
-        $result = User::search('fo')->raw();
+        $result = User::search('fo')->keys();
 
-        $this->assertSame(2, $result->getHits());
-        $this->assertEquals([4, 3], $result->getIdentifiers());
+        $this->assertEquals([4, 3], $result->toArray());
     }
 
     public function test_finds_documents_with_single_matching_term_if_no_match_for_all_terms_is_required_per_configuration(): void
     {
-        $result = User::search('one two three')->raw();
+        $result = User::search('one two three')->keys();
 
-        $this->assertSame(1, $result->getHits());
-        $this->assertEquals([5], $result->getIdentifiers());
+        $this->assertEquals([5], $result->toArray());
     }
 
     public function test_does_not_find_documents_with_single_matching_term_if_match_for_all_terms_is_required_per_configuration(): void
     {
         $this->app->make('config')->set('scout-database.search.require_match_for_all_tokens', true);
 
-        $result = User::search('one two three')->raw();
+        $result = User::search('one two three')->keys();
 
-        $this->assertSame(0, $result->getHits());
-        $this->assertEquals([], $result->getIdentifiers());
+        $this->assertEmpty($result);
     }
 
     public function test_finds_documents_with_multiple_hits_of_a_term_before_documents_with_less_hits(): void
     {
-        $result = User::search('abc')->raw();
+        $result = User::search('hello')->keys();
 
-        $this->assertSame(2, $result->getHits());
-        $this->assertEquals([2, 1], $result->getIdentifiers());
+        $this->assertEquals([11, 10], $result->toArray());
     }
 
     public function test_finds_documents_with_rare_terms_before_documents_with_common_terms(): void
     {
-        $result = User::search('euro cent')->raw();
+        $result = User::search('euro cent')->keys();
 
-        $this->assertSame(3, $result->getHits());
-        $this->assertEquals([8, 6, 7], $result->getIdentifiers());
+        $this->assertEquals([8, 6, 7], $result->toArray());
     }
 
     public function test_finds_limited_amount_of_documents_if_limit_is_set(): void
