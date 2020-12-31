@@ -79,26 +79,17 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      *
      * @return void
+     * @throws \BadFunctionCallException
      */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
             if (!function_exists('config_path') || !function_exists('database_path')) {
-                throw new \Exception('config_path() and/or database_path() function not found. Is the Laravel framework installed?');
+                throw new \BadFunctionCallException('config_path() and/or database_path() function not found. Is the Laravel framework installed?');
             }
 
-            $this->publishes([
-                __DIR__.'/../config/scout-database.php' => config_path('scout-database.php'),
-            ], 'config');
-
-            $this->publishes([
-                __DIR__ . '/../migrations/0000_00_00_000000_create_scout_database_words_table.php' =>
-                    database_path('migrations/'.date('Y_m_d_His', time()).'_create_scout_database_words_table.php'),
-                __DIR__ . '/../migrations/0000_00_00_000001_create_scout_database_documents_table.php' =>
-                    database_path('migrations/'.date('Y_m_d_His', time()+1).'_create_scout_database_documents_table.php'),
-                __DIR__ . '/../migrations/0000_00_00_000002_create_scout_database_index_table.php' =>
-                    database_path('migrations/'.date('Y_m_d_His', time()+2).'_create_scout_database_index_table.php'),
-            ], 'migrations');
+            $this->publishConfig();
+            $this->publishMigrations();
         }
 
         $this->app->make(EngineManager::class)->extend('database', function (Application $app) {
@@ -125,5 +116,43 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
 
             return new DatabaseEngine($indexer, $seeker);
         });
+    }
+
+    /**
+     * Publishes the package configuration file.
+     *
+     * @return void
+     */
+    private function publishConfig(): void
+    {
+        $this->publishes([
+            __DIR__.'/../config/scout-database.php' => config_path('scout-database.php'),
+        ], 'config');
+    }
+
+    /**
+     * Publishes all package migrations which have not been published yet.
+     *
+     * @return void
+     */
+    private function publishMigrations(): void
+    {
+        static $migrations = [
+            '0000_00_00_000000_create_scout_database_words_table.php' => '_create_scout_database_words_table.php',
+            '0000_00_00_000001_create_scout_database_documents_table.php' => '_create_scout_database_documents_table.php',
+            '0000_00_00_000002_create_scout_database_index_table.php' => '_create_scout_database_index_table.php',
+        ];
+
+        $index = 0;
+        foreach ($migrations as $originalName => $targetSuffix) {
+            // Migration files are only published if no migration files with similar names exist already.
+            if (count(glob(database_path("migrations/*{$targetSuffix}"))) === 0) {
+                $this->publishes([
+                    __DIR__."/../migrations/{$originalName}" => database_path('migrations/'.date('Y_m_d_His', time()+$index).$targetSuffix),
+                ], 'migrations');
+
+                $index++;
+            }
+        }
     }
 }
