@@ -50,6 +50,32 @@ When you have done so, you can then apply the database migrations:
 php artisan migrate
 ```
 
+### Upgrading from `v0.x` to `v1.x`
+
+#### Migrations
+
+With the new version, the database schema has changed and new migrations need to be published using:
+
+```bash
+php artisan vendor:publish --provider="Namoshek\Scout\Database\ScoutDatabaseServiceProvider" --tag="migrations"
+```
+
+The same hint as mentioned above in the _Installation_ section applies to the newly published migrations as well.
+
+#### Config
+
+The configuration has been reduced slightly and you might want to compare the new configuration file with the old one to remove obsolete settings.
+Skipping this part has no negative impact on the performance of the Scout driver, though.
+
+#### Commands
+
+The `\Namoshek\Scout\Database\Commands\CleanWordsTable::class` command has been removed and you should un-schedule it, if you added it previously.
+
+#### Noteworthy
+
+Most occurrences of `protected` fields and methods have been changed to `private` to simplify development in regard to backwards-compatibility breaking changes in the future.
+If you have not been actively overriding parts of the implementation, this does not affect you at all.
+
 ## Configuration
 
 In order to instruct Scout to use the driver provided by this package, you need to change the `driver` option in `config/scout.php`
