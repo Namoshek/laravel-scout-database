@@ -10,13 +10,22 @@
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=namoshek_laravel-scout-database&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=namoshek_laravel-scout-database)
 [![License](https://poser.pugx.org/namoshek/laravel-scout-database/license)](https://packagist.org/packages/namoshek/laravel-scout-database)
 
-The package provides a generic Laravel Scout driver which performs full-text search on indexed model data using an SQL database as storage backend.
-Indexed data is stored in normalized form, allowing efficient search which does not require a full match.
+This package provides a generic Laravel Scout driver which performs full-text search on indexed model data using an SQL database as storage backend.
+Indexed data is stored in normalized form, allowing efficient and fuzzy search which does not require a full and/or exact match.
 
 This driver is an alternative to [`teamtnt/laravel-scout-tntsearch-driver`](https://github.com/teamtnt/laravel-scout-tntsearch-driver).
-The primary difference is that this driver provides less features (like geo search). Instead it works with all database systems supported
-by Laravel itself (which are basically all PDO drivers).
-Also the search algorithm is slightly different and fuzzy search is currently not implemented.
+The primary difference is that this driver provides fewer features (like geo search).
+Instead, it works with all database systems supported by Laravel itself (which are basically all PDO drivers).
+Also, the search algorithm is slightly different.
+
+All tests are run through GitHub Actions for PHP 7.3, 7.4 and 8.0 on the following database systems:
+- SQLite 3
+- MySQL 8.0
+- PostgreSQL 13.1
+- SQL Server 2017
+
+Actual limitations regarding supported database systems are mostly related to the use of _Common Table Expression_ using [staudenmeir/laravel-cte](https://github.com/staudenmeir/laravel-cte).
+Please make sure your database system is supported before using the package, or you might run into database errors.
 
 ## Installation
 
@@ -89,6 +98,7 @@ If you have different requirements for a stemmer, you can provide your own imple
 ## Usage
 
 The package follows the available use cases described in the [official Scout documentation](https://laravel.com/docs/7.x/scout).
+Please be aware of the listed [limitations](#limitations) though.
 
 ### How does it work?
 
@@ -124,23 +134,19 @@ wildcard search). Returned are documents ordered by their score in descending or
 Obviously, this package does not provide a search engine which (even remotely) brings the performance and quality a professional search engine
 like Elasticsearch offers. This solution is meant for smaller to medium-sized projects which are in need of a rather simple-to-setup solution.
 
+Also worth noting, the following Scout features are currently not implemented:
+- Soft Deletes
+- Search with custom conditions using `User::search('Max')->where('city', 'Bregenz')`
+- Search custom index using `User::search('Mustermann')->within('users_without_admins')`
+- Search with custom order using `User::search('Musterfrau')->orderBy('age', 'desc')`
+  - Implementing this feature would be difficult in combination with the scoring algorithm. Only the result of the database query could be ordered, while this could then lead to issues with pagination.
+
+### Known Issues
+
 One issue with this search engine is that it can lead to issues if multiple queue workers work on the indexing of a single document concurrently
 (database will deadlock).
 To circumvent this issue, a the number of attempts used for transactions is configurable. By default, each transaction is tried a maximum of three
 times if a deadlock (or any other error) occurs.
-
-_Note: Use the `queue` setting in your `config/scout.php` to use a queue for indexing on which only few queue workers are active,
-if you run into issues with deadlocks. Running index updates synchronously (not queued) may break your application altogether,
-since the amount of concurrency is pretty much out of your control._
-
-## Disclaimer
-
-The package has only been tested with Microsoft SQL Server as well as SQLite so far. The SQL functions used within raw query parts should be available
-for Microsoft SQL Server, MySql, PostgreSQL as well as SQLite. Polyfills for `log()` and `sqrt()` have been provided for SQLite, but they might
-not yield very good performance (to be honest, I've no experience with this part). If you come across issues with any of the database systems
-Laravel supports, please let me know.
-
-Noteworthy as well is that the search algorithm has not been tested with concrete test inputs, only with some real world data.
 
 ## License
 
