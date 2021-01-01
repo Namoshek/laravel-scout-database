@@ -21,6 +21,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Shutdown Ubuntu built-in MySQL
         if: matrix.db-connection == 'mysql'
