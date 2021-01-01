@@ -30,14 +30,15 @@
     </php>
     <testsuites>
         <testsuite name="Test">
-            <directory suffix=".php">./tests/</directory>
+            <directory suffix=".php">tests</directory>
         </testsuite>
     </testsuites>
     <coverage>
         <include>
-            <directory suffix=".php">config</directory>
-            <directory suffix=".php">migrations</directory>
             <directory suffix=".php">src</directory>
         </include>
+        <exclude>
+            <directory suffix=".php">src/Stemmer</directory>
+        </exclude>
     </coverage>
 </phpunit>
