@@ -100,12 +100,10 @@ jobs:
           DB_SQLSRV_PASSWORD: ${{ secrets.TESTS_SQLSRV_DB_SECRET }}
 
       - name: Prepare paths for SonarQube analysis
-        uses: jacobtomlinson/gha-find-replace@0.1.2
         if: matrix.php-version == '8.0' && matrix.db-connection == 'sqlite_inmemory'
-        with:
-          find: $GITHUB_WORKSPACE
-          replace: '/github/workspace'
-          include: 'phpunit.+\.xml'
+        run: |
+          sed -i "s|$GITHUB_WORKSPACE|/github/workspace|g" phpunit.coverage-clover.xml
+          sed -i "s|$GITHUB_WORKSPACE|/github/workspace|g" phpunit.report-junit.xml
 
       - name: Run SonarQube analysis
         uses: sonarsource/sonarcloud-github-action@master
