@@ -104,8 +104,8 @@ jobs:
         if: matrix.php-version == '8.0' && matrix.db-connection == 'sqlite_inmemory'
         with:
           find: $GITHUB_WORKSPACE
-          replace: /github/workspace
-          include: 'phpunit\..+\.xml'
+          replace: '/github/workspace'
+          include: 'phpunit.+\.xml'
 
       - name: Run SonarQube analysis
         uses: sonarsource/sonarcloud-github-action@master
