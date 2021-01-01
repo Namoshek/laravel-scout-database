@@ -4,14 +4,14 @@ on: [push]
 
 jobs:
   test-all:
-    name: Test PHP ${{ matrix.php-versions }} targeting ${{ matrix.db-connection }}
+    name: Test PHP ${{ matrix.php-version }} targeting ${{ matrix.db-connection }}
 
     runs-on: ${{ matrix.operating-system }}
 
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-versions: ['7.3', '7.4', '8.0']
+        php-version: ['7.3', '7.4', '8.0']
         db-connection: ['sqlite_inmemory', 'sqlite_file', 'mysql', 'pgsql', 'sqlsrv']
 
     steps:
@@ -21,7 +21,8 @@ jobs:
         if: matrix.db-connection == 'mysql'
         run: sudo service mysql stop
 
-      - uses: haltuf/mysql-action@master
+      - name: Setup MySQL 8.0
+        uses: haltuf/mysql-action@master
         if: matrix.db-connection == 'mysql'
         with:
           host port: 3306
@@ -33,7 +34,8 @@ jobs:
           mysql password: ${{ secrets.TESTS_MYSQL_DB_SECRET }}
           authentication plugin: 'mysql_native_password'
 
-      - uses: harmon758/postgresql-action@v1
+      - name: Setup PostgreSQL 13.1
+        uses: harmon758/postgresql-action@v1
         if: matrix.db-connection == 'pgsql'
         with:
           postgresql version: '13.1'
@@ -41,15 +43,17 @@ jobs:
           postgresql user: 'scoutdb'
           postgresql password: ${{ secrets.TESTS_PGSQL_DB_SECRET }}
 
-      - uses: 280780363/sqlserver-action@v1.0
+      - name: Setup SQL Server 2017
+        uses: 280780363/sqlserver-action@v1.0
         if: matrix.db-connection == 'sqlsrv'
         with:
           accept eula: 'Y'
           sa password: ${{ secrets.TESTS_SQLSRV_DB_SECRET }}
 
-      - uses: shivammathur/setup-php@v2
+      - name: Setup PHPUnit
+        uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php-versions }}
+          php-version: ${{ matrix.php-version }}
           tools: phpunit:9.5.0
           coverage: pcov
 
@@ -63,6 +67,7 @@ jobs:
         id: composer-cache
         run: |
           echo "::set-output name=dir::$(composer config cache-files-dir)"
+
       - name: Cache Composer dependencies
         uses: actions/cache@v2
         with:
@@ -86,3 +91,10 @@ jobs:
           DB_SQLSRV_DATABASE: 'master'
           DB_SQLSRV_USERNAME: 'sa'
           DB_SQLSRV_PASSWORD: ${{ secrets.TESTS_SQLSRV_DB_SECRET }}
+
+      - name: Run SonarQube analysis
+        uses: sonarsource/sonarcloud-github-action@master
+        if: matrix.php-version == '8.0' && matrix.db-connection == 'sqlite_inmemory'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
