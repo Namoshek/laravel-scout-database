@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 
 /**
- * A user stub for tests.
+ * An animal stub for tests.
  *
  * @package Namoshek\Scout\Database\Tests\Stubs
  */
-class User extends Model
+class Animal extends Model
 {
     use Searchable;
 
@@ -20,6 +20,6 @@ class User extends Model
 
     public function searchableAs()
     {
-        return 'user';
+        return 'animal';
     }
 }

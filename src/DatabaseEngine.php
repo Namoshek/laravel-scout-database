@@ -118,10 +118,6 @@ class DatabaseEngine extends Engine
      */
     public function map(Builder $builder, $result, $model): EloquentCollection
     {
-        if (! $result instanceof SearchResult) {
-            throw new \InvalidArgumentException('The given result is not of the correct type.');
-        }
-
         $objectIds = $result->getIdentifiers();
 
         if (count($objectIds) === 0) {

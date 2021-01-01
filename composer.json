@@ -34,7 +34,7 @@
             "@test:unit"
         ],
         "test:cs": "vendor/bin/phpcs",
-        "test:unit": "vendor/bin/phpunit --testdox --log-junit=phpunit.report-junit.xml --coverage-clover=phpunit.coverage-clover.xml",
+        "test:unit": "vendor/bin/phpunit --testdox --log-junit=phpunit.report-junit.xml --coverage-clover=phpunit.coverage-clover.xml --coverage-text",
         "fix:cs": "vendor/bin/phpcbf"
     },
     "autoload": {

@@ -110,7 +110,7 @@ class DatabaseIndexer
                 }
             }, $this->indexingConfiguration->getTransactionAttempts());
         } catch (\Throwable $e) {
-            throw new ScoutDatabaseException("Extending or updating search index failed.", 0, $e);
+            throw new ScoutDatabaseException('Extending or updating search index failed.', 0, $e);
         }
     }
 
@@ -128,7 +128,7 @@ class DatabaseIndexer
             $this->addRawDocumentConstraintsToBuilder($this->connection->table($this->databaseHelper->indexTable()), $models)
                 ->delete();
         } catch (\Throwable $e) {
-            throw new ScoutDatabaseException("Deleting entries from search index failed.", 0, $e);
+            throw new ScoutDatabaseException('Deleting entries from search index failed.', 0, $e);
         }
     }
 
@@ -147,7 +147,7 @@ class DatabaseIndexer
                 ->where('document_type', $model->searchableAs())
                 ->delete();
         } catch (\Throwable $e) {
-            throw new ScoutDatabaseException("Deleting all entries of type from search index failed.", 0, $e);
+            throw new ScoutDatabaseException('Deleting all entries of type from search index failed.', 0, $e);
         }
     }
 
