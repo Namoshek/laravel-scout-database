@@ -98,6 +98,14 @@ class DatabaseSeekerTest extends TestCase
         $this->assertEquals('Max Mustermann', $result->shift()->name);
     }
 
+    public function test_finds_no_documents_of_searched_type_if_no_match_is_given(): void
+    {
+        $result = User::search('randomness')->get();
+
+        $this->assertSame(0, $result->count());
+        $this->assertEquals([], $result->toArray());
+    }
+
     public function test_finds_first_matching_document(): void
     {
         $result = User::search('abc')->first();
@@ -197,5 +205,15 @@ class DatabaseSeekerTest extends TestCase
         $this->assertSame(5, $result->total());
         $this->assertSame(1, count($result->items()['ids']));
         $this->assertEquals([104], $result->items()['ids']);
+    }
+
+    public function test_builder_returned_by_raw_results_is_the_one_used_for_searching(): void
+    {
+        $builder = User::search('abc');
+
+        /** @var SearchResult $result */
+        $result = $builder->raw();
+
+        $this->assertEquals($builder, $result->getBuilder());
     }
 }
