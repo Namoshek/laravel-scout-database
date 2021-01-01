@@ -105,7 +105,7 @@ jobs:
         with:
           find: $GITHUB_WORKSPACE
           replace: /github/workspace
-          include: "phpunit\..+\.xml"
+          include: 'phpunit\..+\.xml'
 
       - name: Run SonarQube analysis
         uses: sonarsource/sonarcloud-github-action@master
