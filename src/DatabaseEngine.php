@@ -155,7 +155,7 @@ class DatabaseEngine extends Engine
 
         $objectIdPositions = array_flip($objectIds);
 
-        return $model->getScoutModelsByIds($builder, $objectIds)
+        return $model->queryScoutModelsByIds($builder, $objectIds)
             ->cursor()
             ->filter(function ($model) use ($objectIds) {
                 return in_array($model->getScoutKey(), $objectIds);

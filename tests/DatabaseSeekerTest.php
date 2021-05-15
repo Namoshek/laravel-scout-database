@@ -98,9 +98,27 @@ class DatabaseSeekerTest extends TestCase
         $this->assertEquals('Max Mustermann', $result->shift()->name);
     }
 
+    public function test_finds_documents_of_searched_type_which_have_term_with_exact_match_2(): void
+    {
+        $result = User::search('abc')->cursor();
+
+        $this->assertSame(2, $result->count());
+        $this->assertEquals([2, 1], $result->pluck('id')->toArray());
+        $this->assertEquals('Mia Musterfrau', $result->skip(0)->first()->name);
+        $this->assertEquals('Max Mustermann', $result->skip(1)->first()->name);
+    }
+
     public function test_finds_no_documents_of_searched_type_if_no_match_is_given(): void
     {
         $result = User::search('randomness')->get();
+
+        $this->assertSame(0, $result->count());
+        $this->assertEquals([], $result->toArray());
+    }
+
+    public function test_finds_no_documents_of_searched_type_if_no_match_is_given_2(): void
+    {
+        $result = User::search('randomness')->cursor();
 
         $this->assertSame(0, $result->count());
         $this->assertEquals([], $result->toArray());
