@@ -141,10 +141,22 @@ class DatabaseIndexer
      */
     public function deleteEntireModelFromIndex(Model $model): void
     {
+        $this->deleteIndex($model->searchableAs());
+    }
+
+    /**
+     * Removes all indexed data from the index with the given name.
+     *
+     * @param string $name
+     * @return void
+     * @throws ScoutDatabaseException
+     */
+    public function deleteIndex(string $name): void
+    {
         try {
-            // Delete the affected documents from the documents table.
+            // Delete the affected documents from the documents table. The document type is the index name.
             $this->connection->table($this->databaseHelper->indexTable())
-                ->where('document_type', $model->searchableAs())
+                ->where('document_type', $name)
                 ->delete();
         } catch (\Throwable $e) {
             throw new ScoutDatabaseException('Deleting all entries of type from search index failed.', 0, $e);

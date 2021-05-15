@@ -7,6 +7,7 @@ namespace Namoshek\Scout\Database;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 use Laravel\Scout\Builder;
 use Laravel\Scout\Engines\Engine;
 use Laravel\Scout\Searchable;
@@ -89,9 +90,9 @@ class DatabaseEngine extends Engine
      * @param Builder $builder
      * @param int     $perPage
      * @param int     $page
-     * @return mixed
+     * @return SearchResult
      */
-    public function paginate(Builder $builder, $perPage, $page)
+    public function paginate(Builder $builder, $perPage, $page): SearchResult
     {
         return $this->seeker->search($builder, $page, $perPage);
     }
@@ -99,26 +100,26 @@ class DatabaseEngine extends Engine
     /**
      * Pluck and return the primary keys of the given results.
      *
-     * @param SearchResult $result
+     * @param SearchResult $results
      * @return Collection
      */
-    public function mapIds($result): Collection
+    public function mapIds($results): Collection
     {
-        return collect($result->getIdentifiers());
+        return collect($results->getIdentifiers());
     }
 
     /**
      * Map the given results to instances of the given model.
      *
      * @param Builder          $builder
-     * @param SearchResult     $result
+     * @param SearchResult     $results
      * @param Model|Searchable $model
      * @return EloquentCollection
      * @throws \InvalidArgumentException
      */
-    public function map(Builder $builder, $result, $model): EloquentCollection
+    public function map(Builder $builder, $results, $model): EloquentCollection
     {
-        $objectIds = $result->getIdentifiers();
+        $objectIds = $results->getIdentifiers();
 
         if (count($objectIds) === 0) {
             return EloquentCollection::make();
@@ -137,13 +138,67 @@ class DatabaseEngine extends Engine
     }
 
     /**
+     * Map the given results to instances of the given model via a lazy collection.
+     *
+     * @param Builder          $builder
+     * @param mixed            $results
+     * @param Model|Searchable $model
+     * @return LazyCollection
+     */
+    public function lazyMap(Builder $builder, $results, $model): LazyCollection
+    {
+        $objectIds = $results->getIdentifiers();
+
+        if (count($objectIds) === 0) {
+            return LazyCollection::empty();
+        }
+
+        $objectIdPositions = array_flip($objectIds);
+
+        return $model->queryScoutModelsByIds($builder, $objectIds)
+            ->cursor()
+            ->filter(function ($model) use ($objectIds) {
+                return in_array($model->getScoutKey(), $objectIds);
+            })
+            ->sortBy(function ($model) use ($objectIdPositions) {
+                return $objectIdPositions[$model->getScoutKey()];
+            })
+            ->values();
+    }
+
+    /**
      * Get the total count from a raw result returned by the engine.
      *
-     * @param SearchResult $result
+     * @param SearchResult $results
      * @return int
      */
-    public function getTotalCount($result): int
+    public function getTotalCount($results): int
     {
-        return $result->getHits();
+        return $results->getHits();
+    }
+
+    /**
+     * Create a search index.
+     *
+     * @param string $name
+     * @param array  $options
+     * @return void
+     * @throws ScoutDatabaseException
+     */
+    public function createIndex($name, array $options = []): void
+    {
+        throw new ScoutDatabaseException('Scout Database indexes are created automatically upon adding objects (index table must exist).');
+    }
+
+    /**
+     * Delete a search index.
+     *
+     * @param string $name
+     * @return void
+     * @throws ScoutDatabaseException
+     */
+    public function deleteIndex($name): void
+    {
+        $this->indexer->deleteIndex($name);
     }
 }
