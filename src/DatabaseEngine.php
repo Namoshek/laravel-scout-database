@@ -89,9 +89,9 @@ class DatabaseEngine extends Engine
      * @param Builder $builder
      * @param int     $perPage
      * @param int     $page
-     * @return mixed
+     * @return SearchResult
      */
-    public function paginate(Builder $builder, $perPage, $page)
+    public function paginate(Builder $builder, $perPage, $page): SearchResult
     {
         return $this->seeker->search($builder, $page, $perPage);
     }
@@ -99,26 +99,26 @@ class DatabaseEngine extends Engine
     /**
      * Pluck and return the primary keys of the given results.
      *
-     * @param SearchResult $result
+     * @param SearchResult $results
      * @return Collection
      */
-    public function mapIds($result): Collection
+    public function mapIds($results): Collection
     {
-        return collect($result->getIdentifiers());
+        return collect($results->getIdentifiers());
     }
 
     /**
      * Map the given results to instances of the given model.
      *
      * @param Builder          $builder
-     * @param SearchResult     $result
+     * @param SearchResult     $results
      * @param Model|Searchable $model
      * @return EloquentCollection
      * @throws \InvalidArgumentException
      */
-    public function map(Builder $builder, $result, $model): EloquentCollection
+    public function map(Builder $builder, $results, $model): EloquentCollection
     {
-        $objectIds = $result->getIdentifiers();
+        $objectIds = $results->getIdentifiers();
 
         if (count($objectIds) === 0) {
             return EloquentCollection::make();
@@ -139,11 +139,11 @@ class DatabaseEngine extends Engine
     /**
      * Get the total count from a raw result returned by the engine.
      *
-     * @param SearchResult $result
+     * @param SearchResult $results
      * @return int
      */
-    public function getTotalCount($result): int
+    public function getTotalCount($results): int
+        return $results->getHits();
     {
-        return $result->getHits();
     }
 }
