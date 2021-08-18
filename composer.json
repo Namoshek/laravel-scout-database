@@ -22,7 +22,7 @@
         "illuminate/support": "^6.0|^7.0|^8.0",
         "laravel/scout": "^7.0|^8.0|^9.0",
         "staudenmeir/laravel-cte": "^1.0",
-        "wamania/php-stemmer": "^2.0"
+        "wamania/php-stemmer": "^2.0|^3.0"
     },
     "require-dev": {
         "orchestra/testbench": "^5.3|^6.0",
