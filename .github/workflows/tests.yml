@@ -18,6 +18,11 @@ jobs:
         operating-system: [ubuntu-latest]
         php-version: ['7.3', '7.4', '8.0', '8.1']
         db-connection: ['sqlite_inmemory', 'sqlite_file', 'mysql', 'pgsql', 'sqlsrv']
+        include:
+          - operating-system: 'ubuntu-latest'
+            php-version: '8.1'
+            db-connection: 'sqlite_inmemory'
+            run-sonarqube-analysis: true
 
     steps:
       - uses: actions/checkout@v2
@@ -100,14 +105,14 @@ jobs:
           DB_SQLSRV_PASSWORD: ${{ secrets.TESTS_SQLSRV_DB_SECRET }}
 
       - name: Prepare paths for SonarQube analysis
-        if: matrix.php-version == '8.1' && matrix.db-connection == 'sqlite_inmemory'
+        if: matrix.run-sonarqube-analysis
         run: |
           sed -i "s|$GITHUB_WORKSPACE|/github/workspace|g" phpunit.coverage-clover.xml
           sed -i "s|$GITHUB_WORKSPACE|/github/workspace|g" phpunit.report-junit.xml
 
       - name: Run SonarQube analysis
         uses: sonarsource/sonarcloud-github-action@master
-        if: matrix.php-version == '8.1' && matrix.db-connection == 'sqlite_inmemory'
+        if: matrix.run-sonarqube-analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
