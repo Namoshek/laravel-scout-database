@@ -18,7 +18,7 @@ The primary difference is that this driver provides fewer features (like geo sea
 Instead, it works with all database systems supported by Laravel itself (which are basically all PDO drivers).
 Also, the search algorithm is slightly different.
 
-All tests are run through GitHub Actions for PHP 7.3, 7.4 and 8.0 on the following database systems:
+All tests are run through GitHub Actions for PHP 7.3, 7.4, 8.0 and 8.1 on the following database systems:
 - SQLite 3
 - MySQL 8.0
 - PostgreSQL 13.1
