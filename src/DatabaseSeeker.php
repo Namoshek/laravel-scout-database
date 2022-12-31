@@ -29,7 +29,8 @@ class DatabaseSeeker
         private Stemmer $stemmer,
         private DatabaseHelper $databaseHelper,
         private SearchConfiguration $searchConfiguration
-    ) {
+    )
+    {
     }
 
     /**

@@ -26,7 +26,8 @@ class SearchResult implements Arrayable
         private Builder $builder,
         private array $ids,
         int $hits = null
-    ) {
+    )
+    {
         $this->hits = $hits ?? count($ids);
     }
 

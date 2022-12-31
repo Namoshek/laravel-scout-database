@@ -30,7 +30,8 @@ class DatabaseIndexer
         private Stemmer $stemmer,
         private DatabaseHelper $databaseHelper,
         private IndexingConfiguration $indexingConfiguration
-    ) {
+    )
+    {
     }
 
     /**

@@ -25,7 +25,8 @@ class DatabaseEngine extends Engine
     public function __construct(
         private DatabaseIndexer $indexer,
         private DatabaseSeeker $seeker
-    ) {
+    )
+    {
     }
 
     /**

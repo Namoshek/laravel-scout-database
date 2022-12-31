@@ -20,7 +20,8 @@ class SearchConfiguration
         private float $termDeviationWeight,
         private bool $wildcardLastToken,
         private bool $requireMatchForAllTokens
-    ) {
+    )
+    {
     }
 
     /**
