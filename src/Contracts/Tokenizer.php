@@ -15,7 +15,6 @@ interface Tokenizer
      * Splits the given string into tokens. The way the input string is split into tokens
      * depends on the actual implementation.
      *
-     * @param string $input
      * @return string[]
      */
     public function tokenize(string $input): array;

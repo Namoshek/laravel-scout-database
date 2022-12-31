@@ -21,53 +21,25 @@ use Namoshek\Scout\Database\Support\DatabaseHelper;
  */
 class DatabaseIndexer
 {
-    /** @var ConnectionInterface */
-    private $connection;
-
-    /** @var Tokenizer */
-    private $tokenizer;
-
-    /** @var Stemmer */
-    private $stemmer;
-
-    /** @var DatabaseHelper */
-    private $databaseHelper;
-
-    /** @var IndexingConfiguration */
-    private $indexingConfiguration;
-
     /**
      * DatabaseIndexer constructor.
-     *
-     * @param ConnectionInterface   $connection
-     * @param Tokenizer             $tokenizer
-     * @param Stemmer               $stemmer
-     * @param DatabaseHelper        $databaseHelper
-     * @param IndexingConfiguration $indexingConfiguration
      */
     public function __construct(
-        ConnectionInterface $connection,
-        Tokenizer $tokenizer,
-        Stemmer $stemmer,
-        DatabaseHelper $databaseHelper,
-        IndexingConfiguration $indexingConfiguration
-    )
-    {
-        $this->connection            = $connection;
-        $this->tokenizer             = $tokenizer;
-        $this->stemmer               = $stemmer;
-        $this->databaseHelper        = $databaseHelper;
-        $this->indexingConfiguration = $indexingConfiguration;
+        private ConnectionInterface $connection,
+        private Tokenizer $tokenizer,
+        private Stemmer $stemmer,
+        private DatabaseHelper $databaseHelper,
+        private IndexingConfiguration $indexingConfiguration
+    ) {
     }
 
     /**
      * Indexes the given models. Works for both, updates and inserts seamlessly.
      *
      * @param Collection|Model[]|Searchable[] $models
-     * @return void
      * @throws ScoutDatabaseException
      */
-    public function index(Collection $models): void
+    public function index(Collection|array $models): void
     {
         try {
             // Normalize the searchable data of the model. First, all inputs are converted to their
@@ -118,10 +90,9 @@ class DatabaseIndexer
      * Removes all indexed data for the given models from the index.
      *
      * @param Collection|Model[]|Searchable[] $models
-     * @return void
      * @throws ScoutDatabaseException
      */
-    public function deleteFromIndex(Collection $models): void
+    public function deleteFromIndex(Collection|array $models): void
     {
         try {
             // Delete the documents from the documents table.
@@ -135,11 +106,9 @@ class DatabaseIndexer
     /**
      * Removes all indexed data for all models of the given model type from the index.
      *
-     * @param Model|Searchable $model
-     * @return void
      * @throws ScoutDatabaseException
      */
-    public function deleteEntireModelFromIndex(Model $model): void
+    public function deleteEntireModelFromIndex(Model|Searchable $model): void
     {
         $this->deleteIndex($model->searchableAs());
     }
@@ -147,8 +116,6 @@ class DatabaseIndexer
     /**
      * Removes all indexed data from the index with the given name.
      *
-     * @param string $name
-     * @return void
      * @throws ScoutDatabaseException
      */
     public function deleteIndex(string $name): void
@@ -168,7 +135,6 @@ class DatabaseIndexer
      * the given values into a list of values. Then, each of the values in those lists will be
      * run through the stemmer.
      *
-     * @param array $data
      * @return string[][]
      */
     private function normalizeSearchableData(array $data): array
@@ -178,9 +144,7 @@ class DatabaseIndexer
 
             $words = $this->tokenizer->tokenize($value);
 
-            return array_map(function ($word) {
-                return $this->stemmer->stem($word);
-            }, $words);
+            return array_map(fn ($word) => $this->stemmer->stem($word), $words);
         }, $data);
     }
 
@@ -193,9 +157,8 @@ class DatabaseIndexer
      *
      * @param Builder                         $builder
      * @param Collection|Model[]|Searchable[] $models
-     * @return Builder
      */
-    private function addRawDocumentConstraintsToBuilder(Builder $builder, Collection $models): Builder
+    private function addRawDocumentConstraintsToBuilder(Builder $builder, Collection|array $models): Builder
     {
         $index = 0;
         foreach ($models as $model) {

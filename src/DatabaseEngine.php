@@ -19,29 +19,19 @@ use Laravel\Scout\Searchable;
  */
 class DatabaseEngine extends Engine
 {
-    /** @var DatabaseIndexer */
-    private $indexer;
-
-    /** @var DatabaseSeeker */
-    private $seeker;
-
     /**
      * DatabaseEngine constructor.
-     *
-     * @param DatabaseIndexer $indexer
-     * @param DatabaseSeeker  $seeker
      */
-    public function __construct(DatabaseIndexer $indexer, DatabaseSeeker $seeker)
-    {
-        $this->indexer = $indexer;
-        $this->seeker  = $seeker;
+    public function __construct(
+        private DatabaseIndexer $indexer,
+        private DatabaseSeeker $seeker
+    ) {
     }
 
     /**
      * Update the given model in the index.
      *
      * @param EloquentCollection|Model[] $models
-     * @return void
      * @throws ScoutDatabaseException
      */
     public function update($models): void
@@ -53,7 +43,6 @@ class DatabaseEngine extends Engine
      * Remove the given model from the index.
      *
      * @param EloquentCollection|Model[] $models
-     * @return void
      * @throws ScoutDatabaseException
      */
     public function delete($models): void
@@ -65,7 +54,6 @@ class DatabaseEngine extends Engine
      * Flush all of the model's records from the engine.
      *
      * @param Model $model
-     * @return void
      * @throws ScoutDatabaseException
      */
     public function flush($model): void
@@ -75,9 +63,6 @@ class DatabaseEngine extends Engine
 
     /**
      * Perform the given search on the engine.
-     *
-     * @param Builder $builder
-     * @return SearchResult
      */
     public function search(Builder $builder): SearchResult
     {
@@ -87,10 +72,8 @@ class DatabaseEngine extends Engine
     /**
      * Perform the given search on the engine.
      *
-     * @param Builder $builder
-     * @param int     $perPage
-     * @param int     $page
-     * @return SearchResult
+     * @param int $perPage
+     * @param int $page
      */
     public function paginate(Builder $builder, $perPage, $page): SearchResult
     {
@@ -101,7 +84,6 @@ class DatabaseEngine extends Engine
      * Pluck and return the primary keys of the given results.
      *
      * @param SearchResult $results
-     * @return Collection
      */
     public function mapIds($results): Collection
     {
@@ -111,10 +93,8 @@ class DatabaseEngine extends Engine
     /**
      * Map the given results to instances of the given model.
      *
-     * @param Builder          $builder
      * @param SearchResult     $results
      * @param Model|Searchable $model
-     * @return EloquentCollection
      * @throws \InvalidArgumentException
      */
     public function map(Builder $builder, $results, $model): EloquentCollection
@@ -128,22 +108,16 @@ class DatabaseEngine extends Engine
         $objectIdPositions = array_flip($objectIds);
 
         return $model->getScoutModelsByIds($builder, $objectIds)
-            ->filter(function ($model) use ($objectIds) {
-                return in_array($model->getScoutKey(), $objectIds);
-            })
-            ->sortBy(function ($model) use ($objectIdPositions) {
-                return $objectIdPositions[$model->getScoutKey()];
-            })
+            ->filter(fn ($model) => in_array($model->getScoutKey(), $objectIds))
+            ->sortBy(fn ($model) => $objectIdPositions[$model->getScoutKey()])
             ->values();
     }
 
     /**
      * Map the given results to instances of the given model via a lazy collection.
      *
-     * @param Builder          $builder
      * @param mixed            $results
      * @param Model|Searchable $model
-     * @return LazyCollection
      */
     public function lazyMap(Builder $builder, $results, $model): LazyCollection
     {
@@ -157,12 +131,8 @@ class DatabaseEngine extends Engine
 
         return $model->queryScoutModelsByIds($builder, $objectIds)
             ->cursor()
-            ->filter(function ($model) use ($objectIds) {
-                return in_array($model->getScoutKey(), $objectIds);
-            })
-            ->sortBy(function ($model) use ($objectIdPositions) {
-                return $objectIdPositions[$model->getScoutKey()];
-            })
+            ->filter(fn ($model) => in_array($model->getScoutKey(), $objectIds))
+            ->sortBy(fn ($model) => $objectIdPositions[$model->getScoutKey()])
             ->values();
     }
 
@@ -170,7 +140,6 @@ class DatabaseEngine extends Engine
      * Get the total count from a raw result returned by the engine.
      *
      * @param SearchResult $results
-     * @return int
      */
     public function getTotalCount($results): int
     {
@@ -181,8 +150,6 @@ class DatabaseEngine extends Engine
      * Create a search index.
      *
      * @param string $name
-     * @param array  $options
-     * @return void
      * @throws ScoutDatabaseException
      */
     public function createIndex($name, array $options = []): void
@@ -194,7 +161,6 @@ class DatabaseEngine extends Engine
      * Delete a search index.
      *
      * @param string $name
-     * @return void
      * @throws ScoutDatabaseException
      */
     public function deleteIndex($name): void

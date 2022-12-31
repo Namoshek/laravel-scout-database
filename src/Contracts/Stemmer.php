@@ -15,9 +15,6 @@ interface Stemmer
 {
     /**
      * Uses the given input word to calculate the stemmed variant of it.
-     *
-     * @param string $word
-     * @return string
      */
     public function stem(string $word): string;
 }

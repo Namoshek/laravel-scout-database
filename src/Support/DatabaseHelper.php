@@ -11,24 +11,15 @@ namespace Namoshek\Scout\Database\Support;
  */
 class DatabaseHelper
 {
-    /** @var string */
-    private $prefix;
-
     /**
      * DatabaseHelper constructor.
-     *
-     * @param string $prefix
      */
-    public function __construct(string $prefix)
+    public function __construct(private string $prefix)
     {
-        $this->prefix = $prefix;
     }
 
     /**
      * Prefixes the given table name with the configured table prefix.
-     *
-     * @param string $table
-     * @return string
      */
     public function prefixTable(string $table): string
     {
@@ -37,8 +28,6 @@ class DatabaseHelper
 
     /**
      * Returns the prefixed table name of the index table.
-     *
-     * @return string
      */
     public function indexTable(): string
     {

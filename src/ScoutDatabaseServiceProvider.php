@@ -20,8 +20,6 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
-     *
-     * @return void
      */
     public function register(): void
     {
@@ -78,7 +76,6 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      *
-     * @return void
      * @throws \BadFunctionCallException
      */
     public function boot(): void
@@ -120,8 +117,6 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
 
     /**
      * Publishes the package configuration file.
-     *
-     * @return void
      */
     private function publishConfig(): void
     {
@@ -132,8 +127,6 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
 
     /**
      * Publishes all package migrations which have not been published yet.
-     *
-     * @return void
      */
     private function publishMigrations(): void
     {

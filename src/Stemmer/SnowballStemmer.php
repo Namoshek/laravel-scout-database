@@ -15,13 +15,11 @@ use Wamania\Snowball\StemmerFactory;
  */
 abstract class SnowballStemmer implements Stemmer
 {
-    /** @var \Wamania\Snowball\Stemmer\Stemmer */
-    private $stemmer;
+    private \Wamania\Snowball\Stemmer\Stemmer $stemmer;
 
     /**
      * SnowballStemmer constructor.
      *
-     * @param string $language
      * @throws NotFoundException
      */
     public function __construct(string $language)
@@ -32,8 +30,6 @@ abstract class SnowballStemmer implements Stemmer
     /**
      * Uses the given input word to calculate the stemmed variant of it.
      *
-     * @param string $word
-     * @return string
      * @throws \Exception
      */
     public function stem(string $word): string
