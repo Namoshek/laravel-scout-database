@@ -20,43 +20,17 @@ use Namoshek\Scout\Database\Support\DatabaseHelper;
  */
 class DatabaseSeeker
 {
-    /** @var ConnectionInterface */
-    private $connection;
-
-    /** @var Tokenizer */
-    private $tokenizer;
-
-    /** @var Stemmer */
-    private $stemmer;
-
-    /** @var DatabaseHelper */
-    private $databaseHelper;
-
-    /** @var SearchConfiguration */
-    private $searchConfiguration;
-
     /**
      * DatabaseSeeker constructor.
-     *
-     * @param ConnectionInterface $connection
-     * @param Tokenizer           $tokenizer
-     * @param Stemmer             $stemmer
-     * @param DatabaseHelper      $databaseHelper
-     * @param SearchConfiguration $searchConfiguration
      */
     public function __construct(
-        ConnectionInterface $connection,
-        Tokenizer $tokenizer,
-        Stemmer $stemmer,
-        DatabaseHelper $databaseHelper,
-        SearchConfiguration $searchConfiguration
+        private ConnectionInterface $connection,
+        private Tokenizer $tokenizer,
+        private Stemmer $stemmer,
+        private DatabaseHelper $databaseHelper,
+        private SearchConfiguration $searchConfiguration
     )
     {
-        $this->connection          = $connection;
-        $this->tokenizer           = $tokenizer;
-        $this->stemmer             = $stemmer;
-        $this->databaseHelper      = $databaseHelper;
-        $this->searchConfiguration = $searchConfiguration;
     }
 
     /**
@@ -74,7 +48,6 @@ class DatabaseSeeker
      * @param Builder  $builder
      * @param int      $page
      * @param int|null $pageSize
-     * @return SearchResult
      */
     public function search(Builder $builder, int $page = 1, int $pageSize = null): SearchResult
     {
@@ -98,11 +71,7 @@ class DatabaseSeeker
     /**
      * Performs the actual search by querying the database.
      *
-     * @param Builder  $builder
      * @param string[] $keywords
-     * @param int      $page
-     * @param int|null $limit
-     * @return SearchResult
      */
     private function performSearch(Builder $builder, array $keywords, int $page, ?int $limit): SearchResult
     {
@@ -139,9 +108,7 @@ class DatabaseSeeker
      * Creates a new search query using the given builder. The query can be used to retrieve paginated results
      * and also to count the total number of potential hits.
      *
-     * @param Builder  $builder
      * @param string[] $keywords
-     * @return QueryBuilder
      */
     private function createSearchQuery(Builder $builder, array $keywords): QueryBuilder
     {
@@ -233,7 +200,6 @@ class DatabaseSeeker
     /**
      * Retrieve tokenized stems from the given search string.
      *
-     * @param string $searchString
      * @return string[]
      */
     private function getTokenizedStemsFromSearchString(string $searchString): array
@@ -242,10 +208,8 @@ class DatabaseSeeker
         $searchTerm = mb_strtolower($searchString);
 
         // Tokenize and stem our input. The result is a list of stemmed words.
-        $words = $this->tokenizer->tokenize((string) $searchTerm);
+        $words = $this->tokenizer->tokenize($searchTerm);
 
-        return array_map(function ($word) {
-            return $this->stemmer->stem($word);
-        }, $words);
+        return array_map(fn ($word) => $this->stemmer->stem($word), $words);
     }
 }

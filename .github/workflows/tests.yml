@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-version: ['7.3', '7.4', '8.0', '8.1', '8.2']
+        php-version: ['8.0', '8.1', '8.2']
         db-connection: ['sqlite_inmemory', 'sqlite_file', 'mysql', 'pgsql', 'sqlsrv']
         include:
           - operating-system: 'ubuntu-latest'

@@ -11,49 +11,21 @@ namespace Namoshek\Scout\Database;
  */
 class SearchConfiguration
 {
-    /** @var float */
-    private $inverseDocumentFrequencyWeight;
-
-    /** @var float */
-    private $termFrequencyWeight;
-
-    /** @var float */
-    private $termDeviationWeight;
-
-    /** @var bool */
-    private $wildcardLastToken;
-
-    /** @var bool */
-    private $requireMatchForAllTokens;
-
     /**
      * SearchConfiguration constructor.
-     *
-     * @param float $inverseDocumentFrequencyWeight
-     * @param float $termFrequencyWeight
-     * @param float $termDeviationWeight
-     * @param bool  $wildcardLastToken
-     * @param bool  $requireMatchForAllTokens
      */
     public function __construct(
-        float $inverseDocumentFrequencyWeight,
-        float $termFrequencyWeight,
-        float $termDeviationWeight,
-        bool $wildcardLastToken,
-        bool $requireMatchForAllTokens
+        private float $inverseDocumentFrequencyWeight,
+        private float $termFrequencyWeight,
+        private float $termDeviationWeight,
+        private bool $wildcardLastToken,
+        private bool $requireMatchForAllTokens
     )
     {
-        $this->inverseDocumentFrequencyWeight = $inverseDocumentFrequencyWeight;
-        $this->termFrequencyWeight            = $termFrequencyWeight;
-        $this->termDeviationWeight            = $termDeviationWeight;
-        $this->wildcardLastToken              = $wildcardLastToken;
-        $this->requireMatchForAllTokens       = $requireMatchForAllTokens;
     }
 
     /**
      * Returns the weight for the inverse document frequency.
-     *
-     * @return float
      */
     public function getInverseDocumentFrequencyWeight(): float
     {
@@ -62,8 +34,6 @@ class SearchConfiguration
 
     /**
      * Returns the weight for the term frequency.
-     *
-     * @return float
      */
     public function getTermFrequencyWeight(): float
     {
@@ -72,8 +42,6 @@ class SearchConfiguration
 
     /**
      * Returns the weight for the term deviation.
-     *
-     * @return float
      */
     public function getTermDeviationWeight(): float
     {
@@ -82,8 +50,6 @@ class SearchConfiguration
 
     /**
      * Returns whether the last token of a search query shall use a wildcard.
-     *
-     * @return bool
      */
     public function lastTokenShouldUseWildcard(): bool
     {
@@ -92,8 +58,6 @@ class SearchConfiguration
 
     /**
      * Returns whether search shall only return documents containing all searched tokens.
-     *
-     * @return bool
      */
     public function requireMatchForAllTokens(): bool
     {

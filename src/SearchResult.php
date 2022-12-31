@@ -15,33 +15,24 @@ use Laravel\Scout\Builder;
  */
 class SearchResult implements Arrayable
 {
-    /** @var Builder */
-    private $builder;
-
-    /** @var int[] */
-    private $ids;
-
-    /** @var int */
-    private $hits;
+    private int $hits;
 
     /**
      * SearchResult constructor.
      *
-     * @param Builder $builder
-     * @param int[]   $ids
-     * @param int     $hits
+     * @param int[] $ids
      */
-    public function __construct(Builder $builder, array $ids, int $hits = null)
+    public function __construct(
+        private Builder $builder,
+        private array $ids,
+        int $hits = null
+    )
     {
-        $this->builder = $builder;
-        $this->ids     = $ids;
-        $this->hits    = $hits ?? count($ids);
+        $this->hits = $hits ?? count($ids);
     }
 
     /**
      * Gets the query builder used to perform the search.
-     *
-     * @return Builder
      */
     public function getBuilder(): Builder
     {
@@ -63,8 +54,6 @@ class SearchResult implements Arrayable
 
     /**
      * Gets the number of landed hits for the search.
-     *
-     * @return int
      */
     public function getHits(): int
     {
