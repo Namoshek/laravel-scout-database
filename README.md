@@ -218,7 +218,6 @@ like Elasticsearch offers. This solution is meant for smaller to medium-sized pr
 
 Also worth noting, the following Scout features are currently not implemented:
 - Soft Deletes
-- Search with custom conditions using `User::search('Max')->where('city', 'Bregenz')`
 - Search custom index using `User::search('Mustermann')->within('users_without_admins')`
 - Search with custom order using `User::search('Musterfrau')->orderBy('age', 'desc')`
   - Implementing this feature would be difficult in combination with the scoring algorithm. Only the result of the database query could be ordered, while this could then lead to issues with pagination.
