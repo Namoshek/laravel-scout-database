@@ -46,9 +46,14 @@ class DatabaseIndexer
             // Normalize the searchable data of the model. First, all inputs are converted to their
             // lower case counterpart. Then the input for each attribute is tokenized and the resulting
             // tokens are stemmed. The result is an array of models with a list of stemmed words.
-            $rowsToInsert = [];
+            $rowsToInsert             = [];
+            $standaloneFieldsToInsert = [];
             foreach ($models as $model) {
-                $stems = Arr::flatten($this->normalizeSearchableData($model->toSearchableArray()));
+                $searchableArray  = $model->toSearchableArray();
+                $searchableData   = array_filter($searchableArray, fn ($value) => ! $value instanceof StandaloneField);
+                $standaloneFields = array_filter($searchableArray, fn ($value) => $value instanceof StandaloneField);
+
+                $stems = Arr::flatten($this->normalizeSearchableData($searchableData));
 
                 $terms = [];
                 foreach ($stems as $stem) {
@@ -60,13 +65,34 @@ class DatabaseIndexer
                 }
 
                 foreach ($terms as $term => $hits) {
-                    $rowsToInsert[] = [
+                    $row = [
                         'document_type' => $model->searchableAs(),
                         'document_id' => $model->getKey(),
                         'term' => (string) $term,
                         'length' => mb_strlen((string) $term),
                         'num_hits' => $hits,
                     ];
+
+                    foreach ($standaloneFields as $key => /** @var StandaloneField $value */ $value) {
+                        $row[$key] = $value->value;
+
+                        if (! in_array($key, $standaloneFieldsToInsert)) {
+                            $standaloneFieldsToInsert[] = $key;
+                        }
+                    }
+
+                    $rowsToInsert[] = $row;
+                }
+            }
+
+            // Ensure that all rows have the same standalone fields or a null replacement.
+            if (! empty($standaloneFieldsToInsert)) {
+                foreach ($rowsToInsert as $key => $row) {
+                    foreach ($standaloneFieldsToInsert as $standaloneFieldToInsert) {
+                        if (! array_key_exists($standaloneFieldToInsert, $row)) {
+                            $rowsToInsert[$key][$standaloneFieldToInsert] = null;
+                        }
+                    }
                 }
             }
 

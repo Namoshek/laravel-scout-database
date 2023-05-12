@@ -116,6 +116,11 @@ class DatabaseSeeker
             ->table('matches_with_score')
             ->withExpression('documents_in_index', function (QueryBuilder $query) use ($builder) {
                 $query->from($this->databaseHelper->indexTable())
+                    ->when(! empty(self::getWhereConditions($builder)), function (QueryBuilder $query) use ($builder) {
+                        foreach (self::getWhereConditions($builder) as $key => $value) {
+                            $query->where($key, $value);
+                        }
+                    })
                     ->whereRaw("document_type = '{$builder->model->searchableAs()}'")
                     ->select([
                         'document_type',
@@ -125,6 +130,11 @@ class DatabaseSeeker
             })
             ->withExpression('document_index', function (QueryBuilder $query) use ($builder) {
                 $query->from($this->databaseHelper->indexTable())
+                    ->when(! empty(self::getWhereConditions($builder)), function (QueryBuilder $query) use ($builder) {
+                        foreach (self::getWhereConditions($builder) as $key => $value) {
+                            $query->where($key, $value);
+                        }
+                    })
                     ->whereRaw("document_type = '{$builder->model->searchableAs()}'")
                     ->select([
                         'id',
@@ -211,5 +221,16 @@ class DatabaseSeeker
         $words = $this->tokenizer->tokenize($searchTerm);
 
         return array_map(fn ($word) => $this->stemmer->stem($word), $words);
+    }
+
+    /**
+     * Returns the filtered where conditions of the given builder which are supported by this search engine.
+     *
+     * @param Builder $builder
+     * @return array
+     */
+    private static function getWhereConditions(Builder $builder): array
+    {
+        return array_filter($builder->wheres, fn ($key) => $key !== '__soft_deleted', ARRAY_FILTER_USE_KEY);
     }
 }
