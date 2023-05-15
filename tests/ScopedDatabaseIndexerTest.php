@@ -11,16 +11,27 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Namoshek\Scout\Database\DatabaseIndexer;
 use Namoshek\Scout\Database\Stemmer\NullStemmer;
 use Namoshek\Scout\Database\Tests\Stubs\Animal;
+use Namoshek\Scout\Database\Tests\Stubs\ScopedUser;
 use Namoshek\Scout\Database\Tests\Stubs\User;
 
 /**
- * Tests for the {@see DatabaseIndexer} class.
+ * Tests for the {@see DatabaseIndexer} class with additional query scopes.
  *
  * @package Namoshek\Scout\Database\Tests
  */
-class DatabaseIndexerTest extends TestCase
+class ScopedDatabaseIndexerTest extends TestCase
 {
     use DatabaseMigrations;
+
+    private const TENANT_ID_1 = '83d774cb-0b9f-4e13-bff8-b1bb7764d662';
+    private const TENANT_ID_2 = '79502181-9ecc-418a-9742-caf7f704f72e';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->loadMigrationsFrom(__DIR__ . '/migrations_for_scoped_tests');
+    }
 
     protected function insertCommonTestDataInDatabase(): void
     {
@@ -28,17 +39,40 @@ class DatabaseIndexerTest extends TestCase
         $connection = $this->app->make('db');
 
         $connection->table('scout_index')->insert([
-            ['document_type' => 'user', 'document_id' => 1, 'term' => 'abc', 'length' => 3, 'num_hits' => 1],
-            ['document_type' => 'user', 'document_id' => 2, 'term' => 'abc', 'length' => 3, 'num_hits' => 4],
-            ['document_type' => 'user', 'document_id' => 1, 'term' => 'def', 'length' => 3, 'num_hits' => 2],
-            ['document_type' => 'post', 'document_id' => 1, 'term' => 'ghi', 'length' => 3, 'num_hits' => 1],
-            ['document_type' => 'comment', 'document_id' => 1, 'term' => 'jkl', 'length' => 3, 'num_hits' => 4],
-            ['document_type' => 'comment', 'document_id' => 2, 'term' => 'jkl', 'length' => 3, 'num_hits' => 3],
+            ['tenant_id' => self::TENANT_ID_1, 'document_type' => 'user', 'document_id' => 1, 'term' => 'abc', 'length' => 3, 'num_hits' => 1],
+            ['tenant_id' => self::TENANT_ID_1, 'document_type' => 'user', 'document_id' => 2, 'term' => 'abc', 'length' => 3, 'num_hits' => 4],
+            ['tenant_id' => self::TENANT_ID_1, 'document_type' => 'user', 'document_id' => 1, 'term' => 'def', 'length' => 3, 'num_hits' => 2],
+            ['tenant_id' => self::TENANT_ID_1, 'document_type' => 'post', 'document_id' => 1, 'term' => 'ghi', 'length' => 3, 'num_hits' => 1],
+            ['tenant_id' => self::TENANT_ID_1, 'document_type' => 'comment', 'document_id' => 1, 'term' => 'jkl', 'length' => 3, 'num_hits' => 4],
+            ['tenant_id' => self::TENANT_ID_1, 'document_type' => 'comment', 'document_id' => 2, 'term' => 'jkl', 'length' => 3, 'num_hits' => 3],
+
+            ['tenant_id' => self::TENANT_ID_2, 'document_type' => 'user', 'document_id' => 3, 'term' => 'john', 'length' => 4, 'num_hits' => 1],
+            ['tenant_id' => self::TENANT_ID_2, 'document_type' => 'user', 'document_id' => 3, 'term' => 'doe', 'length' => 3, 'num_hits' => 1],
+            ['tenant_id' => self::TENANT_ID_2, 'document_type' => 'user', 'document_id' => 3, 'term' => 'example', 'length' => 7, 'num_hits' => 1],
         ]);
 
         $connection->table('users')->insert([
-            ['name' => 'Max Mustermann', 'email' => 'max.mustermann@example.com', 'password' => '123456', 'remember_token' => now()],
-            ['name' => 'Mia Musterfrau', 'email' => 'mia.musterfrau@example.com', 'password' => '123456', 'remember_token' => now()],
+            [
+                'tenant_id' => self::TENANT_ID_1,
+                'name' => 'Max Mustermann',
+                'email' => 'max.mustermann@example.com',
+                'password' => '123456',
+                'remember_token' => now(),
+            ],
+            [
+                'tenant_id' => self::TENANT_ID_1,
+                'name' => 'Mia Musterfrau',
+                'email' => 'mia.musterfrau@example.com',
+                'password' => '123456',
+                'remember_token' => now(),
+            ],
+            [
+                'tenant_id' => self::TENANT_ID_2,
+                'name' => 'John Doe',
+                'email' => 'john.doe@example.com',
+                'password' => '123456',
+                'remember_token' => now(),
+            ],
         ]);
     }
 
@@ -51,6 +85,7 @@ class DatabaseIndexerTest extends TestCase
         $this->assertDatabaseCount('scout_index', 3);
         $this->assertDatabaseMissing('scout_index', ['document_type' => 'user']);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'post',
             'document_id' => 1,
             'term' => 'ghi',
@@ -58,6 +93,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'comment',
             'document_id' => 1,
             'term' => 'jkl',
@@ -65,6 +101,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 4,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'comment',
             'document_id' => 2,
             'term' => 'jkl',
@@ -77,11 +114,15 @@ class DatabaseIndexerTest extends TestCase
     {
         $this->insertCommonTestDataInDatabase();
 
-        $user = new User(['id' => 1]);
+        $this->assertDatabaseCount('scout_index', 9);
+
+        $user = new ScopedUser(['id' => 1]);
+        $user->setTenantId(self::TENANT_ID_1);
         $user->unsearchable();
 
-        $this->assertDatabaseCount('scout_index', 4);
+        $this->assertDatabaseCount('scout_index', 7);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 2,
             'term' => 'abc',
@@ -89,6 +130,31 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 4,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_2,
+            'document_type' => 'user',
+            'document_id' => 3,
+            'term' => 'john',
+            'length' => 4,
+            'num_hits' => 1,
+        ]);
+        $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_2,
+            'document_type' => 'user',
+            'document_id' => 3,
+            'term' => 'doe',
+            'length' => 3,
+            'num_hits' => 1,
+        ]);
+        $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_2,
+            'document_type' => 'user',
+            'document_id' => 3,
+            'term' => 'example',
+            'length' => 7,
+            'num_hits' => 1,
+        ]);
+        $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'post',
             'document_id' => 1,
             'term' => 'ghi',
@@ -96,6 +162,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'comment',
             'document_id' => 1,
             'term' => 'jkl',
@@ -103,6 +170,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 4,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'comment',
             'document_id' => 2,
             'term' => 'jkl',
@@ -117,11 +185,13 @@ class DatabaseIndexerTest extends TestCase
 
         $this->assertDatabaseCount('scout_index', 0);
 
-        $user = new User(['id' => 1, 'first_name' => 'Foo', 'last_name' => 'Bar', 'email' => 'Baz']);
+        $user = new ScopedUser(['id' => 1, 'first_name' => 'Foo', 'last_name' => 'Bar', 'email' => 'Baz']);
+        $user->setTenantId(self::TENANT_ID_1);
         $user->searchable();
 
         $this->assertDatabaseCount('scout_index', 4);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => '1',
@@ -129,6 +199,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => 'foo',
@@ -136,6 +207,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => 'bar',
@@ -143,6 +215,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => 'baz',
@@ -157,13 +230,15 @@ class DatabaseIndexerTest extends TestCase
 
         $this->insertCommonTestDataInDatabase();
 
-        $this->assertDatabaseCount('scout_index', 6);
+        $this->assertDatabaseCount('scout_index', 9);
 
-        $user = new User(['id' => 1, 'first_name' => 'Foo', 'last_name' => 'Bar', 'email' => 'Baz']);
+        $user = new ScopedUser(['id' => 1, 'first_name' => 'Foo', 'last_name' => 'Bar', 'email' => 'Baz']);
+        $user->setTenantId(self::TENANT_ID_1);
         $user->searchable();
 
-        $this->assertDatabaseCount('scout_index', 8);
+        $this->assertDatabaseCount('scout_index', 11);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => '1',
@@ -171,6 +246,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => 'foo',
@@ -178,6 +254,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => 'bar',
@@ -185,6 +262,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => 'baz',
@@ -192,6 +270,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 2,
             'term' => 'abc',
@@ -199,6 +278,31 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 4,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_2,
+            'document_type' => 'user',
+            'document_id' => 3,
+            'term' => 'john',
+            'length' => 4,
+            'num_hits' => 1,
+        ]);
+        $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_2,
+            'document_type' => 'user',
+            'document_id' => 3,
+            'term' => 'doe',
+            'length' => 3,
+            'num_hits' => 1,
+        ]);
+        $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_2,
+            'document_type' => 'user',
+            'document_id' => 3,
+            'term' => 'example',
+            'length' => 7,
+            'num_hits' => 1,
+        ]);
+        $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'post',
             'document_id' => 1,
             'term' => 'ghi',
@@ -206,6 +310,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'comment',
             'document_id' => 1,
             'term' => 'jkl',
@@ -213,6 +318,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 4,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'comment',
             'document_id' => 2,
             'term' => 'jkl',
@@ -227,11 +333,13 @@ class DatabaseIndexerTest extends TestCase
 
         $this->assertDatabaseCount('scout_index', 0);
 
-        $user = new User(['id' => 1, 'first_name' => 'Foo Bar', 'last_name' => 'Foo bar', 'email' => 'Foo baz']);
+        $user = new ScopedUser(['id' => 1, 'first_name' => 'Foo Bar', 'last_name' => 'Foo bar', 'email' => 'Foo baz']);
+        $user->setTenantId(self::TENANT_ID_1);
         $user->searchable();
 
         $this->assertDatabaseCount('scout_index', 4);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => '1',
@@ -239,6 +347,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => 'foo',
@@ -246,6 +355,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 3,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => 'bar',
@@ -253,6 +363,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 2,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => 'baz',
@@ -267,7 +378,9 @@ class DatabaseIndexerTest extends TestCase
 
         $this->assertDatabaseCount('scout_index', 0);
 
-        $user   = new User(['id' => 1, 'first_name' => 'Foo']);
+        $user = new ScopedUser(['id' => 1, 'first_name' => 'Foo']);
+        $user->setTenantId(self::TENANT_ID_1);
+
         $animal = new Animal(['id' => 1, 'name' => 'Doggo']);
 
         $models = new Collection([$user, $animal]);
@@ -275,6 +388,7 @@ class DatabaseIndexerTest extends TestCase
 
         $this->assertDatabaseCount('scout_index', 4);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => '1',
@@ -282,6 +396,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => self::TENANT_ID_1,
             'document_type' => 'user',
             'document_id' => 1,
             'term' => 'foo',
@@ -289,6 +404,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => null,
             'document_type' => 'animal',
             'document_id' => 1,
             'term' => '1',
@@ -296,6 +412,7 @@ class DatabaseIndexerTest extends TestCase
             'num_hits' => 1,
         ]);
         $this->assertDatabaseHas('scout_index', [
+            'tenant_id' => null,
             'document_type' => 'animal',
             'document_id' => 1,
             'term' => 'doggo',

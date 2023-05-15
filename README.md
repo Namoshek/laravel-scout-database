@@ -155,6 +155,62 @@ based on the inverse document frequency (i.e. the ratio between indexed document
 the term frequency (i.e. the number of occurrences of a search term within a document) and the term deviation (which is only relevant for the
 wildcard search). Returned are documents ordered by their score in descending order, until the desired limit is reached.
 
+### Extending the Search Index
+
+It is possible to extend the search index table (`scout_index`) with custom columns.
+During indexing, these columns may be filled with custom content and during searching the searches can be scoped to these columns (exact match).
+This feature is particularly useful when working with a multi-tenancy application where the search index is used by multiple tenants.
+
+#### Example Migration
+
+In our example, we add a mandatory `tenant_id` column to the search index.
+
+```php
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::table('scout_index', function (Blueprint $table) {
+            $table->uuid('tenant_id');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('scout_index', function (Blueprint $table) {
+            $table->dropColumn(['tenant_id']);
+        });
+    }
+};
+```
+
+#### Indexing Example
+
+The `tenant_id` is added during indexing for each model:
+
+```php
+class User extends Model
+{
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'tenant_id' => new StandaloneField($this->tenant_id),
+        ];
+    }
+}
+```
+
+#### Search Example
+
+The `tenant_id` is filtered during search based on the `$tenantId`, which may for example be taken from the HTTP request:
+
+```php
+User::search('Max Mustermann')
+    ->where('tenant_id', $tenantId)
+    ->get();
+```
+
 ## Limitations
 
 Obviously, this package does not provide a search engine which (even remotely) brings the performance and quality a professional search engine
@@ -162,7 +218,6 @@ like Elasticsearch offers. This solution is meant for smaller to medium-sized pr
 
 Also worth noting, the following Scout features are currently not implemented:
 - Soft Deletes
-- Search with custom conditions using `User::search('Max')->where('city', 'Bregenz')`
 - Search custom index using `User::search('Mustermann')->within('users_without_admins')`
 - Search with custom order using `User::search('Musterfrau')->orderBy('age', 'desc')`
   - Implementing this feature would be difficult in combination with the scoring algorithm. Only the result of the database query could be ordered, while this could then lead to issues with pagination.
