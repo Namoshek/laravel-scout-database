@@ -20,7 +20,7 @@
         "illuminate/contracts": "^9.0|^10.0",
         "illuminate/database": "^9.0|^10.0",
         "illuminate/support": "^9.0|^10.0",
-        "laravel/scout": "^9.0",
+        "laravel/scout": "^9.0|^10.0",
         "staudenmeir/laravel-cte": "^1.0",
         "wamania/php-stemmer": "^2.0|^3.0"
     },
