@@ -68,7 +68,9 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
                 $config->get('scout-database.search.term_frequency_weight', 1),
                 $config->get('scout-database.search.term_deviation_weight', 1),
                 $config->get('scout-database.search.wildcard_last_token', true),
-                $config->get('scout-database.search.require_match_for_all_tokens', false)
+                $config->get('scout-database.search.require_match_for_all_tokens', false),
+                $config->get('scout-database.search.wildcard_all_tokens', false),
+                $config->get('scout-database.search.wildcard_min_length', 3),
             );
         });
     }

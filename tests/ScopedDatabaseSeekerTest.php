@@ -9,7 +9,6 @@ namespace Namoshek\Scout\Database\Tests;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Namoshek\Scout\Database\DatabaseSeeker;
 use Namoshek\Scout\Database\SearchResult;
 use Namoshek\Scout\Database\Tests\Stubs\User;
 
@@ -284,5 +283,63 @@ class ScopedDatabaseSeekerTest extends TestCase
         $result = $builder->raw();
 
         $this->assertEquals($builder, $result->getBuilder());
+    }
+
+    public function test_does_not_find_documents_if_wildcard_all_tokens_is_disabled_and_no_exact_match_is_given(): void
+    {
+        $result = User::search('eur ent')->where('tenant_id', self::TENANT_ID_1)->keys();
+
+        $this->assertEmpty($result);
+    }
+
+    public function test_finds_documents_if_wildcard_all_tokens_is_enabled_and_no_exact_match_is_given(): void
+    {
+        $this->app->make('config')->set('scout-database.search.wildcard_all_tokens', true);
+
+        $result = User::search('eur ent')->where('tenant_id', self::TENANT_ID_1)->keys();
+
+        $this->assertEquals([6, 7], $result->toArray());
+    }
+
+    public function test_finds_documents_if_wildcard_all_tokens_is_set_to_both(): void
+    {
+        $this->app->make('config')->set('scout-database.search.wildcard_all_tokens', 'both');
+
+        $result = User::search('eur ent')->where('tenant_id', self::TENANT_ID_1)->keys();
+
+        $this->assertEquals([8, 6, 7], $result->toArray());
+    }
+
+    public function test_does_not_find_documents_by_wildcard_if_minimum_token_length_is_not_reached(): void
+    {
+        $this->app->make('config')->set('scout-database.search.wildcard_all_tokens', 'both');
+        $this->app->make('config')->set('scout-database.search.wildcard_min_length', 4);
+
+        $result = User::search('eur ent')->where('tenant_id', self::TENANT_ID_1)->keys();
+
+        $this->assertEmpty($result);
+    }
+
+    public function test_finds_documents_by_wildcard_if_minimum_token_length_is_reached(): void
+    {
+        $this->app->make('config')->set('scout-database.search.wildcard_all_tokens', 'both');
+        $this->app->make('config')->set('scout-database.search.wildcard_min_length', 4);
+
+        $result = User::search('ello abc xamp')->where('tenant_id', self::TENANT_ID_1)->keys();
+        $this->assertEquals([2, 11, 1, 10], $result->toArray());
+
+        $result = User::search('ello abc xamp')->where('tenant_id', self::TENANT_ID_2)->keys();
+        $this->assertEquals([3], $result->toArray());
+    }
+
+    public function test_adds_wildcard_to_last_token_even_if_minimum_length_is_not_reached(): void
+    {
+        $this->app->make('config')->set('scout-database.search.wildcard_all_tokens', 'both');
+        $this->app->make('config')->set('scout-database.search.wildcard_min_length', 7);
+        $this->app->make('config')->set('scout-database.search.wildcard_last_token', true);
+
+        $result = User::search('ello examp')->where('tenant_id', self::TENANT_ID_2)->keys();
+
+        $this->assertEquals([3], $result->toArray());
     }
 }

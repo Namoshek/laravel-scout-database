@@ -19,7 +19,9 @@ class SearchConfiguration
         private float $termFrequencyWeight,
         private float $termDeviationWeight,
         private bool $wildcardLastToken,
-        private bool $requireMatchForAllTokens
+        private bool $requireMatchForAllTokens,
+        private bool|string $wildcardAllTokens = false,
+        private int $wildcardMinLength = 3,
     )
     {
     }
@@ -54,6 +56,22 @@ class SearchConfiguration
     public function lastTokenShouldUseWildcard(): bool
     {
         return $this->wildcardLastToken;
+    }
+
+    /**
+     * Returns whether all tokens of a search query shall use a wildcard.
+     */
+    public function allTokensShouldUseWildcard(): string|bool
+    {
+        return $this->wildcardAllTokens;
+    }
+
+    /**
+     * Returns th  minimum token length for using wildcards.
+     */
+    public function minimumLengthForWildcard(): int
+    {
+        return $this->wildcardMinLength;
     }
 
     /**

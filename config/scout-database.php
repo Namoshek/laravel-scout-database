@@ -169,6 +169,42 @@ return [
 
         /*
         |--------------------------------------------------------------------------
+        | Use Wildcard for all Search Tokens
+        |--------------------------------------------------------------------------
+        |
+        | This setting controls whether all tokens of a search query shoudld be
+        | handled using a wildcard instead of an exact match. This basically
+        | means that for a search input of "hell wor", the query will match
+        | documents containing "hell%" or "wor%" where % is the SQL wildcard of
+        | a "like" condition. The wildcard will only be applied for
+        | search tokens that have a minimum length of `wilcard_min_length`.
+        |
+        | Setting this to `true` will add a wildcard to the end of each search
+        | token. You may also set this to "both" to add wildcards to the beginning
+        | and the end of each search token, for example: "%hell%" and "%wor%.
+        |
+        | Note: Please not that changing this setting may negatively impact the
+        | performance of search queries. Also you might want to make sure that
+        | `require_match_for_all_tokens` is set to `false` when using this.
+        |
+        */
+
+        'wildcard_all_tokens' => false,
+
+        /*
+        |--------------------------------------------------------------------------
+        | Minimum Token Length to apply Wildcards
+        |--------------------------------------------------------------------------
+        |
+        | If `wildcard_all_tokens` is enabled this setting defines the minimum
+        | length search tokens must have before wildcards are applied.
+        |
+        */
+
+        'wildcard_min_length' => 3,
+
+        /*
+        |--------------------------------------------------------------------------
         | Require a Match for all Tokens
         |--------------------------------------------------------------------------
         |
