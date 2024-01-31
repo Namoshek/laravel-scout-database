@@ -86,6 +86,8 @@ The options are described thoroughly in the file itself. By default, the package
 and the [`PorterStemmer`](src/Stemmer/PorterStemmer.php) which is suitable for the English language. The search adds a trailing wildcard to the
 last token and not all search terms need to be found in order for a document to show up in the results (there must be at least one match though).
 
+You may also add a wildcard to each search token by enabling `wildcard_all_tokens` in the config file altough this is not recommended for performance reasons.
+
 _A basic installation most likely does not require you to change any of these settings. Just to make sure, you should have a look at the
 `connection` option though. If you want to change this, do so before running the migrations or the tables will be created using the wrong
 database connection._

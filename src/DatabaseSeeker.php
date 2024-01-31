@@ -75,10 +75,7 @@ class DatabaseSeeker
      */
     private function performSearch(Builder $builder, array $keywords, int $page, ?int $limit): SearchResult
     {
-        // Add a wildcard to the last search token if it is configured.
-        if ($this->searchConfiguration->lastTokenShouldUseWildcard()) {
-            $keywords[count($keywords) - 1] .= '%';
-        }
+        $keywords = $this->addWildcards($keywords);
 
         // First, we retrieve the paginated results.
         $results = $this->createSearchQuery($builder, $keywords)
@@ -102,6 +99,33 @@ class DatabaseSeeker
         }
 
         return new SearchResult($builder, $results, $totalHits);
+    }
+
+    /**
+     * Add wildcards to the given keywords if configured.
+     *
+     * @param string[] $keywords
+     */
+    private function addWildcards(array $keywords): array
+    {
+        // Add a wildcard to each search token if it is configured.
+        if ($this->searchConfiguration->allTokensShouldUseWildcard()) {
+            $pattern = $this->searchConfiguration->allTokensShouldUseWildcard() === 'both' ? '%%%s%%' : '%s%%';
+
+            $keywords = array_map(
+                fn ($token) => mb_strlen($token) >= $this->searchConfiguration->minimumLengthForWildcard()
+                    ? sprintf($pattern, $token)
+                    : $token,
+                $keywords
+            );
+        }
+
+        // Add a wildcard to the last search token if it is configured.
+        if ($this->searchConfiguration->lastTokenShouldUseWildcard()) {
+            $keywords[count($keywords) - 1] .= '%';
+        }
+
+        return $keywords;
     }
 
     /**
