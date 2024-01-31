@@ -31,7 +31,7 @@ class SearchConfiguration
     /**
      * Define wether all tokens of a search query shall use a wildcard.
      */
-    public function usingWildcardsForAllToken(bool|string $wildcardAllTokens): self
+    public function usingWildcardsForAllTokens(bool|string $wildcardAllTokens): self
     {
         $this->wildcardAllTokens = $wildcardAllTokens;
 

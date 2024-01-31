@@ -70,7 +70,7 @@ class ScoutDatabaseServiceProvider extends ServiceProvider
                 $config->get('scout-database.search.wildcard_last_token', true),
                 $config->get('scout-database.search.require_match_for_all_tokens', false)
             ))
-                ->usingWildcardsForAllToken($config->get('scout-database.search.wildcard_all_tokens', false))
+                ->usingWildcardsForAllTokens($config->get('scout-database.search.wildcard_all_tokens', false))
                 ->usingWildcardMinLength($config->get('scout-database.search.wildcard_min_length', 3));
         });
     }
