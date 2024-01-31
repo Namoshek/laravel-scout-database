@@ -11,10 +11,6 @@ namespace Namoshek\Scout\Database;
  */
 class SearchConfiguration
 {
-    private bool|string $wildcardAllTokens = false;
-
-    private int $wildcardMinLength = 3;
-
     /**
      * SearchConfiguration constructor.
      */
@@ -23,29 +19,11 @@ class SearchConfiguration
         private float $termFrequencyWeight,
         private float $termDeviationWeight,
         private bool $wildcardLastToken,
-        private bool $requireMatchForAllTokens
+        private bool $requireMatchForAllTokens,
+        private bool|string $wildcardAllTokens = false,
+        private int $wildcardMinLength = 3,
     )
     {
-    }
-
-    /**
-     * Define wether all tokens of a search query shall use a wildcard.
-     */
-    public function usingWildcardsForAllTokens(bool|string $wildcardAllTokens): self
-    {
-        $this->wildcardAllTokens = $wildcardAllTokens;
-
-        return $this;
-    }
-
-    /**
-     * Define minimum token length for using wildcards.
-     */
-    public function usingWildcardMinLength(int $length): self
-    {
-        $this->wildcardMinLength = $length;
-
-        return $this;
     }
 
     /**
