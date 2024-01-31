@@ -11,6 +11,7 @@ use Laravel\Scout\Builder;
 use Namoshek\Scout\Database\Contracts\Stemmer;
 use Namoshek\Scout\Database\Contracts\Tokenizer;
 use Namoshek\Scout\Database\Support\DatabaseHelper;
+use Illuminate\Support\Str;
 
 /**
  * The database seeker searches the database for collection items of a specific model,
@@ -122,7 +123,7 @@ class DatabaseSeeker
 
         // Add a wildcard to the last search token if it is configured.
         if ($this->searchConfiguration->lastTokenShouldUseWildcard()) {
-            $keywords[count($keywords) - 1] .= '%';
+            $keywords[count($keywords) - 1] = Str::finish($keywords[count($keywords) - 1], '%');
         }
 
         return $keywords;
