@@ -9,7 +9,6 @@ namespace Namoshek\Scout\Database\Tests;
 use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Namoshek\Scout\Database\DatabaseSeeker;
 use Namoshek\Scout\Database\SearchResult;
 use Namoshek\Scout\Database\Tests\Stubs\User;
 
