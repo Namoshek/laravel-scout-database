@@ -16,11 +16,11 @@ jobs:
     strategy:
       matrix:
         operating-system: [ubuntu-latest]
-        php-version: ['8.0', '8.1', '8.2']
+        php-version: ['8.0', '8.1', '8.2', '8.3', '8.4']
         db-connection: ['sqlite_inmemory', 'sqlite_file', 'mysql', 'pgsql', 'sqlsrv']
         include:
           - operating-system: 'ubuntu-latest'
-            php-version: '8.2'
+            php-version: '8.4'
             db-connection: 'sqlite_inmemory'
             run-sonarqube-analysis: true
 
