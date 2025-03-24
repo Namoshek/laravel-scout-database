@@ -1,0 +1,55 @@
+name: 'Test SQLite'
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'The PHP version to build against'
+        type: string
+        required: true
+      db-connection:
+        description: 'The SQL connection of PHPUnit that is used for the tests.'
+        type: string
+        required: true
+
+jobs:
+  test_mssql:
+    name: 'Test SQLite on PHP ${{ inputs.php-version }}'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php-version }}
+          tools: phpunit:9.5.0
+          coverage: pcov
+
+      - name: Setup problem matchers for PHP
+        run: echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+
+      - name: Setup problem matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install composer dependencies
+        run: composer install --prefer-dist
+
+      - name: Run phpunit tests
+        run: composer test
+        env:
+          DB_CONNECTION: '${{ inputs.db-connection }}'

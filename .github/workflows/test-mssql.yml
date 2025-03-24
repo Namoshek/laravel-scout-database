@@ -1,0 +1,102 @@
+name: 'Test SQL Server'
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'The PHP version to build against'
+        type: string
+        required: true
+      run-sonarqube-analysis:
+        description: 'If enabled, SonarQube analysis is run.'
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  test_mssql:
+    name: 'Test MSSQL on PHP ${{ inputs.php-version }}'
+    runs-on: ubuntu-latest
+    services:
+      sqlsrv:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_PID: 'Developer'
+          SA_PASSWORD: '${{ secrets.TESTS_SQLSRV_DB_SECRET }}'
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P ${SA_PASSWORD} -No -Q 'SELECT 1' || exit 1"
+          --health-interval 10s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install msodbcsql
+        run: |
+          if ! [[ "20.04 22.04 24.04 24.10" == *"$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2)"* ]];
+          then
+              echo "Ubuntu $(grep VERSION_ID /etc/os-release | cut -d '"' -f 2) is not currently supported.";
+              exit;
+          fi
+          
+          curl -sSL -O https://packages.microsoft.com/config/ubuntu/$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2)/packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
+          
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php-version }}
+          tools: phpunit:9.5.0
+          coverage: pcov
+          extensions: sqlsrv, pdo_sqlsrv
+
+      - name: Setup problem matchers for PHP
+        run: echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+
+      - name: Setup problem matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install composer dependencies
+        run: composer install --prefer-dist
+
+      - name: Run phpunit tests
+        run: composer test
+        env:
+          DB_CONNECTION: 'sqlsrv'
+          DB_SQLSRV_DATABASE: 'master'
+          DB_SQLSRV_USERNAME: 'sa'
+          DB_SQLSRV_PASSWORD: ${{ secrets.TESTS_SQLSRV_DB_SECRET }}
+
+      - name: Prepare paths for SonarQube analysis
+        if: inputs.run-sonarqube-analysis
+        run: |
+          sed -i "s|$GITHUB_WORKSPACE|/github/workspace|g" phpunit.coverage-clover.xml
+          sed -i "s|$GITHUB_WORKSPACE|/github/workspace|g" phpunit.report-junit.xml
+
+      - name: Run SonarQube analysis
+        uses: SonarSource/sonarqube-scan-action@v5.1.0
+        if: inputs.run-sonarqube-analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }}
