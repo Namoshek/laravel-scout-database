@@ -55,7 +55,6 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ inputs.php-version }}
-          tools: phpunit:9.5.0
           coverage: pcov
           extensions: sqlsrv, pdo_sqlsrv
 
