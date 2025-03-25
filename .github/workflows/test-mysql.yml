@@ -1,0 +1,69 @@
+name: 'Test MySQL'
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: 'The PHP version to build against'
+        type: string
+        required: true
+
+jobs:
+  test_mysql:
+    name: 'Test MySQL on PHP ${{ inputs.php-version }}'
+    runs-on: ubuntu-latest
+    services:
+      sqlsrv:
+        image: mysql:9
+        env:
+          MYSQL_ROOT_PASSWORD: '${{ secrets.TESTS_MYSQL_DB_SECRET }}'
+          MYSQL_DATABASE: 'scoutdb'
+          MYSQL_USER: 'scoutdb'
+          MYSQL_PASSWORD: '${{ secrets.TESTS_MYSQL_DB_SECRET }}'
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost"
+          --health-interval 10s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ inputs.php-version }}
+          tools: phpunit:9.5.0
+          coverage: pcov
+
+      - name: Setup problem matchers for PHP
+        run: echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+
+      - name: Setup problem matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: |
+          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install composer dependencies
+        run: composer install --prefer-dist
+
+      - name: Run phpunit tests
+        run: composer test
+        env:
+          DB_CONNECTION: 'mysql'
+          DB_MYSQL_DATABASE: 'scoutdb'
+          DB_MYSQL_USERNAME: 'scoutdb'
+          DB_MYSQL_PASSWORD: ${{ secrets.TESTS_MYSQL_DB_SECRET }}

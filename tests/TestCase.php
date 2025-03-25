@@ -64,6 +64,7 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
             'password' => env('DB_SQLSRV_PASSWORD'),
             'charset' => 'utf8',
             'prefix' => '',
+            'encrypt' => 'no',
         ]);
         $app['config']->set('database.connections.mysql', [
             'driver' => 'mysql',
