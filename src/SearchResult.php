@@ -25,9 +25,8 @@ class SearchResult implements Arrayable
     public function __construct(
         private Builder $builder,
         private array $ids,
-        int $hits = null
-    )
-    {
+        ?int $hits = null
+    ) {
         $this->hits = $hits ?? count($ids);
     }
 

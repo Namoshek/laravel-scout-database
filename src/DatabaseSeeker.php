@@ -50,7 +50,7 @@ class DatabaseSeeker
      * @param int      $page
      * @param int|null $pageSize
      */
-    public function search(Builder $builder, int $page = 1, int $pageSize = null): SearchResult
+    public function search(Builder $builder, int $page = 1, ?int $pageSize = null): SearchResult
     {
         /** @var int|null $limit */
         $limit = $pageSize ?? $builder->limit;
@@ -74,7 +74,7 @@ class DatabaseSeeker
      *
      * @param string[] $keywords
      */
-    private function performSearch(Builder $builder, array $keywords, int $page, ?int $limit): SearchResult
+    private function performSearch(Builder $builder, array $keywords, int $page, ?int $limit = null): SearchResult
     {
         $keywords = $this->addWildcards($keywords);
 
