@@ -255,8 +255,8 @@ class DatabaseSeeker
         }
 
         if (is_array($wheres->first()) && isset($wheres->first()['field'])) {
-            /** 
-             * In Scout 11 the where conditions are stored as array. 
+            /**
+             * In Scout 11 the where conditions are stored as array.
              * @see https://github.com/laravel/scout/pull/969/changes
              */
             return $wheres->where('field', '!=', '__soft_deleted')->values()->all();
@@ -276,7 +276,7 @@ class DatabaseSeeker
         $conditions = self::getWhereConditions($builder);
 
         return $query->when(
-            ! empty($conditions), 
+            ! empty($conditions),
             function (QueryBuilder $query) use ($conditions) {
                 foreach ($conditions as $where) {
                     $query->where($where['field'], $where['operator'], $where['value']);
