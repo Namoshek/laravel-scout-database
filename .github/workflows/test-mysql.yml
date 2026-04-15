@@ -17,7 +17,7 @@ jobs:
     name: 'Test MySQL on PHP ${{ inputs.php-version }}'
     runs-on: ubuntu-latest
     services:
-      sqlsrv:
+      mysql:
         image: mysql:9
         env:
           MYSQL_ROOT_PASSWORD: '${{ secrets.TESTS_MYSQL_DB_SECRET }}'

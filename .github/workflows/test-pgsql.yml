@@ -17,7 +17,7 @@ jobs:
     name: "Test PostgreSQL on PHP ${{ inputs.php-version }}"
     runs-on: ubuntu-latest
     services:
-      sqlsrv:
+      pgsql:
         image: postgres:17-alpine
         env:
           POSTGRES_DB: "scoutdb"

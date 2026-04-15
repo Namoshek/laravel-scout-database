@@ -17,7 +17,7 @@ jobs:
     name: "Test MSSQL on PHP ${{ inputs.php-version }}"
     runs-on: ubuntu-latest
     services:
-      sqlsrv:
+      mssql:
         image: mcr.microsoft.com/mssql/server:2022-latest
         env:
           ACCEPT_EULA: "Y"
