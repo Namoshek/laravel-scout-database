@@ -1,20 +1,20 @@
-name: "Test SQLite"
+name: 'Test SQLite'
 
 on:
   workflow_call:
     inputs:
       php-version:
-        description: "The PHP version to build against"
+        description: 'The PHP version to build against'
         type: string
         required: true
       db-connection:
-        description: "The SQL connection of PHPUnit that is used for the tests."
+        description: 'The SQL connection of PHPUnit that is used for the tests.'
         type: string
         required: true
 
 jobs:
   test_mssql:
-    name: "Test SQLite on PHP ${{ inputs.php-version }}"
+    name: 'Test SQLite on PHP ${{ inputs.php-version }}'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -42,8 +42,8 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-php-${{ inputs.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-php-${{ inputs.php-version }}-composer-
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install composer dependencies
         run: composer install --prefer-dist
@@ -51,4 +51,4 @@ jobs:
       - name: Run phpunit tests
         run: composer test
         env:
-          DB_CONNECTION: "${{ inputs.db-connection }}"
+          DB_CONNECTION: '${{ inputs.db-connection }}'
