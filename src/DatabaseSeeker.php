@@ -141,11 +141,7 @@ class DatabaseSeeker
             ->table('matches_with_score')
             ->withExpression('documents_in_index', function (QueryBuilder $query) use ($builder) {
                 $query->from($this->databaseHelper->indexTable())
-                    ->when(! empty(self::getWhereConditions($builder)), function (QueryBuilder $query) use ($builder) {
-                        foreach (self::getWhereConditions($builder) as $key => $value) {
-                            $query->where($key, $value);
-                        }
-                    })
+                    ->where(fn (QueryBuilder $query) => static::applyWhereConditions($query, $builder))
                     ->whereRaw("document_type = '{$builder->model->searchableAs()}'")
                     ->select([
                         'document_type',
@@ -155,11 +151,7 @@ class DatabaseSeeker
             })
             ->withExpression('document_index', function (QueryBuilder $query) use ($builder) {
                 $query->from($this->databaseHelper->indexTable())
-                    ->when(! empty(self::getWhereConditions($builder)), function (QueryBuilder $query) use ($builder) {
-                        foreach (self::getWhereConditions($builder) as $key => $value) {
-                            $query->where($key, $value);
-                        }
-                    })
+                    ->where(fn (QueryBuilder $query) => static::applyWhereConditions($query, $builder))
                     ->whereRaw("document_type = '{$builder->model->searchableAs()}'")
                     ->select([
                         'id',
@@ -256,6 +248,40 @@ class DatabaseSeeker
      */
     private static function getWhereConditions(Builder $builder): array
     {
-        return array_filter($builder->wheres, fn ($key) => $key !== '__soft_deleted', ARRAY_FILTER_USE_KEY);
+        $wheres = collect($builder->wheres);
+
+        if ($wheres->isEmpty()) {
+            return [];
+        }
+
+        if (is_array($wheres->first()) && isset($wheres->first()['field'])) {
+            /** 
+             * In Scout 11 the where conditions are stored as array. 
+             * @see https://github.com/laravel/scout/pull/969/changes
+             */
+            return $wheres->where('field', '!=', '__soft_deleted')->values()->all();
+        }
+
+        return collect($builder->wheres)->except('__soft_deleted')->map(function ($value, $key) {
+            return [
+                'field' => $key,
+                'operator' => '=',
+                'value' => $value,
+            ];
+        })->values()->all();
+    }
+
+    private static function applyWhereConditions(QueryBuilder $query, Builder $builder)
+    {
+        $conditions = self::getWhereConditions($builder);
+
+        return $query->when(
+            ! empty($conditions), 
+            function (QueryBuilder $query) use ($conditions) {
+                foreach ($conditions as $where) {
+                    $query->where($where['field'], $where['operator'], $where['value']);
+                }
+            }
+        );
     }
 }
