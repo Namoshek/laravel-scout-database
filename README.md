@@ -18,11 +18,11 @@ The primary difference is that this driver provides fewer features (like geo sea
 Instead, it works with all database systems supported by Laravel itself (which are basically all PDO drivers).
 Also, the search algorithm is slightly different.
 
-All tests are run through GitHub Actions for PHP 8.0, 8.1 and 8.2 on the following database systems:
+All tests are run through GitHub Actions for PHP 8.2, 8.3, 8.4 and 8.5 on the following database systems:
 - SQLite 3
-- MySQL 8.0
-- PostgreSQL 13.1
-- SQL Server 2017
+- MySQL 9
+- PostgreSQL 17
+- SQL Server 2022
 
 Actual limitations regarding supported database systems are mostly related to the use of _Common Table Expression_ using [staudenmeir/laravel-cte](https://github.com/staudenmeir/laravel-cte).
 Please make sure your database system is supported before using the package, or you might run into database errors.
