@@ -7,13 +7,17 @@ on:
         description: 'The PHP version to build against'
         type: string
         required: true
+      dependency-versions:
+        description: 'Whether to test against the highest or lowest dependency versions. Values: highest, lowest'
+        type: string
+        required: true
 
 jobs:
   test_mysql:
     name: 'Test MySQL on PHP ${{ inputs.php-version }}'
     runs-on: ubuntu-latest
     services:
-      sqlsrv:
+      mysql:
         image: mysql:9
         env:
           MYSQL_ROOT_PASSWORD: '${{ secrets.TESTS_MYSQL_DB_SECRET }}'
@@ -44,20 +48,10 @@ jobs:
       - name: Setup problem matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v5
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
       - name: Install composer dependencies
-        run: composer install --prefer-dist
+        uses: ramsey/composer-install@4.0.0
+        with:
+          dependency-versions: ${{ inputs.dependency-versions }}
 
       - name: Run phpunit tests
         run: composer test
