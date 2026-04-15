@@ -1,24 +1,24 @@
-name: 'Test PostgreSQL'
+name: "Test PostgreSQL"
 
 on:
   workflow_call:
     inputs:
       php-version:
-        description: 'The PHP version to build against'
+        description: "The PHP version to build against"
         type: string
         required: true
 
 jobs:
   test_pgsql:
-    name: 'Test PostgreSQL on PHP ${{ inputs.php-version }}'
+    name: "Test PostgreSQL on PHP ${{ inputs.php-version }}"
     runs-on: ubuntu-latest
     services:
       sqlsrv:
         image: postgres:17-alpine
         env:
-          POSTGRES_DB: 'scoutdb'
-          POSTGRES_USER: 'scoutdb'
-          POSTGRES_PASSWORD: '${{ secrets.TESTS_PGSQL_DB_SECRET }}'
+          POSTGRES_DB: "scoutdb"
+          POSTGRES_USER: "scoutdb"
+          POSTGRES_PASSWORD: "${{ secrets.TESTS_PGSQL_DB_SECRET }}"
         ports:
           - 5432:5432
         options: >-
@@ -52,8 +52,8 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ runner.os }}-php-${{ inputs.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-php-${{ inputs.php-version }}-composer-
 
       - name: Install composer dependencies
         run: composer install --prefer-dist
@@ -61,7 +61,7 @@ jobs:
       - name: Run phpunit tests
         run: composer test
         env:
-          DB_CONNECTION: 'pgsql'
-          DB_PGSQL_DATABASE: 'scoutdb'
-          DB_PGSQL_USERNAME: 'scoutdb'
+          DB_CONNECTION: "pgsql"
+          DB_PGSQL_DATABASE: "scoutdb"
+          DB_PGSQL_USERNAME: "scoutdb"
           DB_PGSQL_PASSWORD: ${{ secrets.TESTS_PGSQL_DB_SECRET }}

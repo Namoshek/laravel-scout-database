@@ -1,29 +1,29 @@
-name: 'Test SQL Server'
+name: "Test SQL Server"
 
 on:
   workflow_call:
     inputs:
       php-version:
-        description: 'The PHP version to build against'
+        description: "The PHP version to build against"
         type: string
         required: true
       run-sonarqube-analysis:
-        description: 'If enabled, SonarQube analysis is run.'
+        description: "If enabled, SonarQube analysis is run."
         type: boolean
         required: false
         default: false
 
 jobs:
   test_mssql:
-    name: 'Test MSSQL on PHP ${{ inputs.php-version }}'
+    name: "Test MSSQL on PHP ${{ inputs.php-version }}"
     runs-on: ubuntu-latest
     services:
       sqlsrv:
         image: mcr.microsoft.com/mssql/server:2022-latest
         env:
-          ACCEPT_EULA: 'Y'
-          MSSQL_PID: 'Developer'
-          SA_PASSWORD: '${{ secrets.TESTS_SQLSRV_DB_SECRET }}'
+          ACCEPT_EULA: "Y"
+          MSSQL_PID: "Developer"
+          SA_PASSWORD: "${{ secrets.TESTS_SQLSRV_DB_SECRET }}"
         ports:
           - 1433:1433
         options: >-
@@ -43,11 +43,11 @@ jobs:
               echo "Ubuntu $(grep VERSION_ID /etc/os-release | cut -d '"' -f 2) is not currently supported.";
               exit;
           fi
-          
+
           curl -sSL -O https://packages.microsoft.com/config/ubuntu/$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2)/packages-microsoft-prod.deb
           sudo dpkg -i packages-microsoft-prod.deb
           rm packages-microsoft-prod.deb
-          
+
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
 
@@ -73,8 +73,8 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ runner.os }}-php-${{ inputs.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-php-${{ inputs.php-version }}-composer-
 
       - name: Install composer dependencies
         run: composer install --prefer-dist
@@ -82,9 +82,9 @@ jobs:
       - name: Run phpunit tests
         run: composer test
         env:
-          DB_CONNECTION: 'sqlsrv'
-          DB_SQLSRV_DATABASE: 'master'
-          DB_SQLSRV_USERNAME: 'sa'
+          DB_CONNECTION: "sqlsrv"
+          DB_SQLSRV_DATABASE: "master"
+          DB_SQLSRV_USERNAME: "sa"
           DB_SQLSRV_PASSWORD: ${{ secrets.TESTS_SQLSRV_DB_SECRET }}
 
       - name: Prepare paths for SonarQube analysis

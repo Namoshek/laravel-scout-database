@@ -1,25 +1,25 @@
-name: 'Test MySQL'
+name: "Test MySQL"
 
 on:
   workflow_call:
     inputs:
       php-version:
-        description: 'The PHP version to build against'
+        description: "The PHP version to build against"
         type: string
         required: true
 
 jobs:
   test_mysql:
-    name: 'Test MySQL on PHP ${{ inputs.php-version }}'
+    name: "Test MySQL on PHP ${{ inputs.php-version }}"
     runs-on: ubuntu-latest
     services:
       sqlsrv:
         image: mysql:9
         env:
-          MYSQL_ROOT_PASSWORD: '${{ secrets.TESTS_MYSQL_DB_SECRET }}'
-          MYSQL_DATABASE: 'scoutdb'
-          MYSQL_USER: 'scoutdb'
-          MYSQL_PASSWORD: '${{ secrets.TESTS_MYSQL_DB_SECRET }}'
+          MYSQL_ROOT_PASSWORD: "${{ secrets.TESTS_MYSQL_DB_SECRET }}"
+          MYSQL_DATABASE: "scoutdb"
+          MYSQL_USER: "scoutdb"
+          MYSQL_PASSWORD: "${{ secrets.TESTS_MYSQL_DB_SECRET }}"
         ports:
           - 3306:3306
         options: >-
@@ -53,8 +53,8 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ inputs.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-${{ inputs.php-version }}-composer-
+          key: ${{ runner.os }}-php-${{ inputs.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-php-${{ inputs.php-version }}-composer-
 
       - name: Install composer dependencies
         run: composer install --prefer-dist
@@ -62,7 +62,7 @@ jobs:
       - name: Run phpunit tests
         run: composer test
         env:
-          DB_CONNECTION: 'mysql'
-          DB_MYSQL_DATABASE: 'scoutdb'
-          DB_MYSQL_USERNAME: 'scoutdb'
+          DB_CONNECTION: "mysql"
+          DB_MYSQL_DATABASE: "scoutdb"
+          DB_MYSQL_USERNAME: "scoutdb"
           DB_MYSQL_PASSWORD: ${{ secrets.TESTS_MYSQL_DB_SECRET }}
