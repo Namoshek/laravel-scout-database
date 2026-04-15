@@ -8,135 +8,52 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  # PHP 8.4
-  test-8_4-mssql:
+  test-mssql:
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.2", "8.3", "8.4", "8.5"]
+        dependency-versions: ["highest", "lowest"]
     uses: ./.github/workflows/test-mssql.yml
     secrets: inherit
     with:
-      php-version: '8.4'
-      run-sonarqube-analysis: true
+      php-version: ${{ matrix.php-version }}
+      dependency-versions: ${{ matrix.dependency-versions }}
 
-  test-8_4-pgsql:
+  test-pgsql:
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.2", "8.3", "8.4", "8.5"]
+        dependency-versions: ["highest", "lowest"]
     uses: ./.github/workflows/test-pgsql.yml
     secrets: inherit
     with:
-      php-version: '8.4'
+      php-version: ${{ matrix.php-version }}
+      dependency-versions: ${{ matrix.dependency-versions }}
 
-  test-8_4-mysql:
+  test-mysql:
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.2", "8.3", "8.4", "8.5"]
+        dependency-versions: ["highest", "lowest"]
     uses: ./.github/workflows/test-mysql.yml
     secrets: inherit
     with:
-      php-version: '8.4'
+      php-version: ${{ matrix.php-version }}
+      dependency-versions: ${{ matrix.dependency-versions }}
 
-  test-8_4-sqlite_file:
+  test-sqlite:
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ["8.2", "8.3", "8.4", "8.5"]
+        dependency-versions: ["highest", "lowest"]
+        db-connection: ["sqlite_file", "sqlite_inmemory"]
     uses: ./.github/workflows/test-sqlite.yml
     secrets: inherit
     with:
-      php-version: '8.4'
-      db-connection: 'sqlite_file'
-
-  test-8_4-sqlite_inmemory:
-    uses: ./.github/workflows/test-sqlite.yml
-    secrets: inherit
-    with:
-      php-version: '8.4'
-      db-connection: 'sqlite_inmemory'
-      
-  # PHP 8.3
-  test-8_3-mssql:
-    uses: ./.github/workflows/test-mssql.yml
-    secrets: inherit
-    with:
-      php-version: '8.3'
-
-  test-8_3-pgsql:
-    uses: ./.github/workflows/test-pgsql.yml
-    secrets: inherit
-    with:
-      php-version: '8.3'
-
-  test-8_3-mysql:
-    uses: ./.github/workflows/test-mysql.yml
-    secrets: inherit
-    with:
-      php-version: '8.3'
-
-  test-8_3-sqlite_file:
-    uses: ./.github/workflows/test-sqlite.yml
-    secrets: inherit
-    with:
-      php-version: '8.3'
-      db-connection: 'sqlite_file'
-
-  test-8_3-sqlite_inmemory:
-    uses: ./.github/workflows/test-sqlite.yml
-    secrets: inherit
-    with:
-      php-version: '8.3'
-      db-connection: 'sqlite_inmemory'
-      
-  # PHP 8.2
-  test-8_2-mssql:
-    uses: ./.github/workflows/test-mssql.yml
-    secrets: inherit
-    with:
-      php-version: '8.2'
-
-  test-8_2-pgsql:
-    uses: ./.github/workflows/test-pgsql.yml
-    secrets: inherit
-    with:
-      php-version: '8.2'
-
-  test-8_2-mysql:
-    uses: ./.github/workflows/test-mysql.yml
-    secrets: inherit
-    with:
-      php-version: '8.2'
-
-  test-8_2-sqlite_file:
-    uses: ./.github/workflows/test-sqlite.yml
-    secrets: inherit
-    with:
-      php-version: '8.2'
-      db-connection: 'sqlite_file'
-
-  test-8_2-sqlite_inmemory:
-    uses: ./.github/workflows/test-sqlite.yml
-    secrets: inherit
-    with:
-      php-version: '8.2'
-      db-connection: 'sqlite_inmemory'
-      
-  # PHP 8.1
-  test-8_1-mssql:
-    uses: ./.github/workflows/test-mssql.yml
-    secrets: inherit
-    with:
-      php-version: '8.1'
-
-  test-8_1-pgsql:
-    uses: ./.github/workflows/test-pgsql.yml
-    secrets: inherit
-    with:
-      php-version: '8.1'
-
-  test-8_1-mysql:
-    uses: ./.github/workflows/test-mysql.yml
-    secrets: inherit
-    with:
-      php-version: '8.1'
-
-  test-8_1-sqlite_file:
-    uses: ./.github/workflows/test-sqlite.yml
-    secrets: inherit
-    with:
-      php-version: '8.1'
-      db-connection: 'sqlite_file'
-
-  test-8_1-sqlite_inmemory:
-    uses: ./.github/workflows/test-sqlite.yml
-    secrets: inherit
-    with:
-      php-version: '8.1'
-      db-connection: 'sqlite_inmemory'
+      php-version: ${{ matrix.php-version }}
+      dependency-versions: ${{ matrix.dependency-versions }}
+      db-connection: ${{ matrix.db-connection }}

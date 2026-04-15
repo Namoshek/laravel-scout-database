@@ -1,24 +1,28 @@
-name: 'Test PostgreSQL'
+name: "Test PostgreSQL"
 
 on:
   workflow_call:
     inputs:
       php-version:
-        description: 'The PHP version to build against'
+        description: "The PHP version to build against"
+        type: string
+        required: true
+      dependency-versions:
+        description: "Whether to test against the highest or lowest dependency versions. Values: highest, lowest"
         type: string
         required: true
 
 jobs:
   test_pgsql:
-    name: 'Test PostgreSQL on PHP ${{ inputs.php-version }}'
+    name: "Test PostgreSQL on PHP ${{ inputs.php-version }}"
     runs-on: ubuntu-latest
     services:
       sqlsrv:
         image: postgres:17-alpine
         env:
-          POSTGRES_DB: 'scoutdb'
-          POSTGRES_USER: 'scoutdb'
-          POSTGRES_PASSWORD: '${{ secrets.TESTS_PGSQL_DB_SECRET }}'
+          POSTGRES_DB: "scoutdb"
+          POSTGRES_USER: "scoutdb"
+          POSTGRES_PASSWORD: "${{ secrets.TESTS_PGSQL_DB_SECRET }}"
         ports:
           - 5432:5432
         options: >-
@@ -43,25 +47,15 @@ jobs:
       - name: Setup problem matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: |
-          echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v5
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
       - name: Install composer dependencies
-        run: composer install --prefer-dist
+        uses: ramsey/composer-install@4.0.0
+        with:
+          dependency-versions: ${{ inputs.dependency-versions }}
 
       - name: Run phpunit tests
         run: composer test
         env:
-          DB_CONNECTION: 'pgsql'
-          DB_PGSQL_DATABASE: 'scoutdb'
-          DB_PGSQL_USERNAME: 'scoutdb'
+          DB_CONNECTION: "pgsql"
+          DB_PGSQL_DATABASE: "scoutdb"
+          DB_PGSQL_USERNAME: "scoutdb"
           DB_PGSQL_PASSWORD: ${{ secrets.TESTS_PGSQL_DB_SECRET }}
