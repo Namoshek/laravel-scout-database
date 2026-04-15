@@ -248,7 +248,27 @@ class DatabaseSeeker
      */
     private static function getWhereConditions(Builder $builder): array
     {
-        return collect($builder->wheres)->where('field', '!=', '__soft_deleted')->values()->all();
+        $wheres = collect($builder->wheres);
+
+        if ($wheres->isEmpty()) {
+            return [];
+        }
+
+        if (is_array($wheres->first()) && isset($wheres->first()['field'])) {
+            /** 
+             * In Scout 11 the where conditions are stored as array. 
+             * @see https://github.com/laravel/scout/pull/969/changes
+             */
+            return $wheres->where('field', '!=', '__soft_deleted')->values()->all();
+        }
+
+        return collect($builder->wheres)->except('__soft_deleted')->map(function ($value, $key) {
+            return [
+                'field' => $key,
+                'operator' => '=',
+                'value' => $value,
+            ];
+        })->values()->all();
     }
 
     private static function applyWhereConditions(QueryBuilder $query, Builder $builder)
@@ -259,9 +279,7 @@ class DatabaseSeeker
             ! empty($conditions), 
             function (QueryBuilder $query) use ($conditions) {
                 foreach ($conditions as $where) {
-                    if ($where['field'] !== '__soft_deleted') {
-                        $query->where($where['field'], $where['operator'], $where['value']);
-                    }
+                    $query->where($where['field'], $where['operator'], $where['value']);
                 }
             }
         );
